@@ -10,7 +10,21 @@ class Bishop(Piece.Piece):
             self.name = "b"
 
     def availableMoves(self, board):
-        print("Bishop implemented")
+        moves = []
+        for i in range(1, 5):
+            if self.isValidMove(self.posx + i, self.posy + i, board):
+                moves.append((self.posx + i, self.posy + i))
+
+            if self.isValidMove(self.posx + i, self.posy - i, board):
+                moves.append((self.posx + i, self.posy - i))
+
+            if self.isValidMove(self.posx - i, self.posy + i, board):
+                moves.append((self.posx - i, self.posy + i))
+
+            if self.isValidMove(self.posx - i, self.posy - i, board):
+                moves.append((self.posx - i, self.posy - i))
+
+        return moves
     
     def doSomething(self):
         super().doSomething()

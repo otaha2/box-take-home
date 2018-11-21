@@ -10,7 +10,19 @@ class Rook(Piece.Piece):
             self.name = "r"
 
     def availableMoves(self, board):
-        print("Rook implemented")
+        moves = []
+        for i in range(1, 5):
+            if self.isValidMove(self.posx + i, self.posy, board):
+                moves.append((self.posx + i, self.posy))
+            elif self.isValidMove(self.posx - i, self.posy, board):
+                moves.append((self.posx - i, self.posy))
+            elif self.isValidMove(self.posx, self.posy + i, board):
+                moves.append((self.posx, self.posy + i))
+            elif self.isValidMove(self.posx, self.posy - i, board):
+                moves.append((self.posx, self.posy - i))
+        return moves
+            
+        
     
     def doSomething(self):
         super().doSomething()

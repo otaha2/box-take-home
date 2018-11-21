@@ -100,10 +100,8 @@ if __name__ == "__main__":
 
     for col in newGame.board:
         for item in col:
-            if type(item) == Models.King.King:
+            if type(item) == Models.Bishop.Bishop:
                 print("My player is: " + item.player)
+                print("My current Position is: " + str((item.posx, item.posy)))
                 print(item.availableMoves(newGame.board))
-
-    
-
-
+                print("")

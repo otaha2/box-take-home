@@ -35,9 +35,9 @@ class Piece(ABC):
             return False
     
     def isSquareValid(self, x, y, board):
-        if board[y][x] == 1:
+        if board[x][y] == 1:
             return True
-        elif board[y][x] != 1 and type(board[y][x]) != str and board[y][x].player != self.player:
+        elif type(board[x][y]) != str and board[x][y].player != self.player:
             return True
         else:
             return False
