@@ -165,5 +165,17 @@ if __name__ == "__main__":
     newGame.refreshStrBoard()
     strB = u.stringifyBoard(newGame.strBoard)
     print(strB)
+
+    print("UPPER player captures: ")
     for item in newGame.upperPlayer.captures:
         print(item)
+    print("")
+
+    newGame.board[1][4].promote()
+
+    newGame.refreshStrBoard()
+    strB = u.stringifyBoard(newGame.strBoard)
+    print(strB)
+
+    print("Available moves for a Promoted Bishop: ")
+    print(newGame.board[1][4].availableMoves(newGame.board))

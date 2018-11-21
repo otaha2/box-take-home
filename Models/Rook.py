@@ -1,4 +1,4 @@
-from Models import Piece
+from Models import Piece, King
 
 class Rook(Piece.Piece):
 
@@ -23,6 +23,16 @@ class Rook(Piece.Piece):
 
             if self.isValidMove(self.posx, self.posy - i, board) and self.isPathOpen(self.posx, self.posy - i, board):
                 moves.append((self.posx, self.posy - i))
+
+        #Promoted Rooks move like a Rook OR a King.
+        if self.promoted == True:
+            #Get all available moves for a king in the same position of the Bishop
+            kingMoves = King.King(self.player, self.posx, self.posy).availableMoves(board)
+            for item in kingMoves:
+                #If the move is not already included in the Rook moves, add it to the list of moves
+                if item not in moves:
+                    moves.append(item)
+
         return moves
 
     def isPathOpen(self, x, y, board):

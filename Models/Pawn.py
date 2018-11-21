@@ -1,4 +1,4 @@
-from Models import Piece
+from Models import Piece, GoldGeneral
 
 class Pawn(Piece.Piece):
 
@@ -11,6 +11,12 @@ class Pawn(Piece.Piece):
 
     def availableMoves(self, board):
         moves = []
+
+        #If promoted, moves like a Gold General
+        if self.promoted == True:
+            moves = GoldGeneral.GoldGeneral(self.player, self.posx, self.posy).availableMoves(board)
+            return moves
+
         if self.player == "lower" and self.isValidMove(self.posx, self.posy + 1, board):
             moves.append((self.posx, self.posy + 1))
         elif self.player == "UPPER" and self.isValidMove(self.posx, self.posy - 1, board):

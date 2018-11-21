@@ -1,4 +1,4 @@
-from Models import Piece
+from Models import Piece, GoldGeneral
 
 class SilverGeneral(Piece.Piece):
 
@@ -10,10 +10,20 @@ class SilverGeneral(Piece.Piece):
             self.name = "s"
 
     def availableMoves(self, board):
+
         moves = []
+
+        #If promoted, moves like a Gold General
+        if self.promoted == True:
+            moves = GoldGeneral.GoldGeneral(self.player, self.posx, self.posy).availableMoves(board)
+            return moves
+        
         for x,y in self.silverGeneralList(self.posx, self.posy):
             if self.isValidMove(x, y, board):
                 moves.append((x, y))
+        
+        
+
         return moves
     
     def doSomething(self):
