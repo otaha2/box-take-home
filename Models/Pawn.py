@@ -1,10 +1,13 @@
-import Piece
+from Models import Piece
 
 class Pawn(Piece.Piece):
 
     def __init__(self, player, posx, posy):
         super().__init__(player, posx, posy)
-        self.name = "p"
+        if self.player == "UPPER":
+            self.name = "P"
+        else:
+            self.name = "p"
 
     def availableMoves(self, posx, posy, board):
         print("Pawn implemented")

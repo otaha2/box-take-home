@@ -1,10 +1,13 @@
-import Piece
+from Models import Piece
 
 class King(Piece.Piece):
 
     def __init__(self, player, posx, posy):
         super().__init__(player, posx, posy)
-        self.name = "k"
+        if self.player == "UPPER":
+            self.name = "K"
+        else:
+            self.name = "k"
     
     def availableMoves(self, posx, posy, board):
         print("King implemented")

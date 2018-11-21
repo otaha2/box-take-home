@@ -1,10 +1,13 @@
-import Piece
+from Models import Piece
 
 class Rook(Piece.Piece):
 
     def __init__(self, player, posx, posy):
         super().__init__(player, posx, posy)
-        self.name = "r"
+        if self.player == "UPPER":
+            self.name = "R"
+        else:
+            self.name = "r"
 
     def availableMoves(self, posx, posy, board):
         print("Rook implemented")

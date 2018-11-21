@@ -1,10 +1,13 @@
-import Piece
+from Models import Piece
 
 class GoldGeneral(Piece.Piece):
 
     def __init__(self, player, posx, posy):
         super().__init__(player, posx, posy)
-        self.name = "g"
+        if self.player == "UPPER":
+            self.name = "G"
+        else:
+            self.name = "g"
 
     def availableMoves(self, posx, posy, board):
         print("GoldGeneral implemented")
