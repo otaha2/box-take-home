@@ -3,7 +3,11 @@ import utils as u
 import argparse
 import sys
 
-from Models import Pawn, King, GoldGeneral, SilverGeneral, Bishop, Rook
+from Models import Pawn, King, GoldGeneral, SilverGeneral, Bishop, Rook, Player
+
+#Dictionary to translate from alpha to index and Vice Versa
+map_from_alpha_to_index = {"a" : 0, "b" : 1, "c" : 2, "d" : 3, "e" : 4}
+map_from_index_to_alpha = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e"}
 
 class Game():
 
@@ -11,18 +15,18 @@ class Game():
     interactive_mode = False
     file_mode = False
     fname = ""
+    lowerCapture = []
+    upperCapture = []
 
-    #Dictionary to translate from alpha to index and Vice Versa
-    chess_map_from_alpha_to_index = {"a" : 0, "b" : 1, "c" : 2, "d" : 3, "e" : 4}
-    chess_map_from_index_to_alpha = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e"}
+    
 
 
     def __init__(self):
 
         self.playerTurn = "lower"
         self.initBoard()
-        self.lowerPlayerMoveCount = 0
-        self.upperPlayerMoveCount = 0
+        self.lowerPlayer = Player.Player("lower")
+        self.upperPlayer = Player.Player("UPPER")
 
     #Set up the object represented board and string board
     def initBoard(self):
@@ -87,6 +91,47 @@ class Game():
             elif sys.argv[1] == "-f":
                 self.file_mode = True
                 self.fname = sys.argv[2]
+
+    def move(self, curPos, endPos):
+
+        #Get the indexs on board of current position and end position
+        curX = curPos[0]
+        curX = map_from_alpha_to_index[curX]
+        curY = int(curPos[1]) - 1
+        endX = endPos[0]
+        endX = map_from_alpha_to_index[endX]
+        endY = int(endPos[1]) - 1
+
+        if (endX, endY) not in self.board[curX][curY].availableMoves(self.board):
+            print("Illegal Move")
+        else:
+            print("Valid Move")
+            if(self.board[endX][endY] == 1) and type(self.board[curX][curY]) != int:
+                item = self.board[curX][curY]
+                item.posx = endX
+                item.posy = endY
+                self.board[endX][endY] = item
+                self.board[curX][curY] = 1
+            if(self.board[endX][endY] != 1) and type(self.board[curX][curY]) != int:
+                if self.board[curX][curY].player == "lower":
+                    self.lowerPlayer.addCapture(self.board[endX][endY])
+                else:
+                    self.upperPlayer.addCapture(self.board[endX][endY])
+                item = self.board[curX][curY]
+                item.posx = endX
+                item.posy = endY
+                self.board[endX][endY] = item
+                self.board[curX][curY] = 1
+            elif type(self.board[curX][curY] == int):
+                print("No piece exits here...")
+            
+
+
+                
+                
+
+        # print("Current Position: " + str((curX, curY)))
+        # print("End Position: " + str((endX, endY)))
             
 
 
@@ -94,17 +139,31 @@ if __name__ == "__main__":
     newGame = Game()
     newGame.defineCLIOptions()
 
-    newGame.board[1][2] = Pawn.Pawn("lower", 1, 2)
-    newGame.board[2][3] = Bishop.Bishop("UPPER", 2, 3)
+    # newGame.board[1][2] = Pawn.Pawn("lower", 1, 2)
+    # newGame.board[2][3] = Bishop.Bishop("UPPER", 2, 3)
 
     newGame.refreshStrBoard()
     strB = u.stringifyBoard(newGame.strBoard)
     print(strB)
 
-    for col in newGame.board:
-        for item in col:
-            if type(item) == Models.Bishop.Bishop:
-                print("My player is: " + item.player)
-                print("My current Position is: " + str((item.posx, item.posy)))
-                print(item.availableMoves(newGame.board))
-                print("")
+    # for col in newGame.board:
+    #     for item in col:
+    #         if type(item) == Models.Bishop.Bishop:
+    #             print("My player is: " + item.player)
+    #             print("My current Position is: " + str((item.posx, item.posy)))
+    #             print(item.availableMoves(newGame.board))
+    #             print("")
+
+    newGame.move("a2", "a3")
+
+    newGame.refreshStrBoard()
+    strB = u.stringifyBoard(newGame.strBoard)
+    print(strB)
+
+    newGame.move("a5", "a3")
+
+    newGame.refreshStrBoard()
+    strB = u.stringifyBoard(newGame.strBoard)
+    print(strB)
+    for item in newGame.upperPlayer.captures:
+        print(item)
