@@ -94,13 +94,15 @@ if __name__ == "__main__":
     newGame = Game()
     newGame.defineCLIOptions()
 
+    newGame.board[2][2] = GoldGeneral.GoldGeneral("UPPER", 2, 2)
+
     newGame.refreshStrBoard()
     strB = u.stringifyBoard(newGame.strBoard)
     print(strB)
 
     for col in newGame.board:
         for item in col:
-            if type(item) == Models.Bishop.Bishop:
+            if type(item) == Models.GoldGeneral.GoldGeneral:
                 print("My player is: " + item.player)
                 print("My current Position is: " + str((item.posx, item.posy)))
                 print(item.availableMoves(newGame.board))
