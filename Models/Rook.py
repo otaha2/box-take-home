@@ -26,25 +26,25 @@ class Rook(Piece.Piece):
         return moves
 
     def isPathOpen(self, x, y, board):
-        if self.posy - y > 0 and self.posx == x:
+        if self.posy > y and self.posx == x:
             #Check if path Down is open (from the view of the lower player)
             for i in range(y + 1, self.posy):
                 if board[self.posx][i] != 1:
                     return False
 
-        if self.posy - y < 0 and self.posx == x:
+        if self.posy < y and self.posx == x:
             #Check if path Up is open (from the view of the lower player)
             for i in range(self.posy + 1, y):
                 if board[self.posx][i] != 1:
                     return False
 
-        if self.posx - x > 0 and self.posy == y:
+        if self.posx > x and self.posy == y:
             #Check if path Left is open
             for i in range(x + 1, self.posx):
                 if board[i][self.posy] != 1:
                     return False
 
-        if self.posx - x < 0 and self.posy == y:
+        if self.posx < x and self.posy == y:
             #Check if path Right is open
             for i in range(self.posx + 1, x):
                 if board[i][self.posy] != 1:
