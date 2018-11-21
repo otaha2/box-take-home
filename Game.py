@@ -94,7 +94,8 @@ if __name__ == "__main__":
     newGame = Game()
     newGame.defineCLIOptions()
 
-    newGame.board[2][2] = Pawn.Pawn("lower", 2, 2)
+    newGame.board[1][2] = Pawn.Pawn("lower", 1, 2)
+    newGame.board[2][2] = Rook.Rook("UPPER", 2, 2)
 
     newGame.refreshStrBoard()
     strB = u.stringifyBoard(newGame.strBoard)
@@ -102,7 +103,7 @@ if __name__ == "__main__":
 
     for col in newGame.board:
         for item in col:
-            if type(item) == Models.Pawn.Pawn:
+            if type(item) == Models.Rook.Rook:
                 print("My player is: " + item.player)
                 print("My current Position is: " + str((item.posx, item.posy)))
                 print(item.availableMoves(newGame.board))
