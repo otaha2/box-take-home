@@ -9,17 +9,19 @@ class King(Piece.Piece):
         else:
             self.name = "k"
     
-    def availableMoves(self, posx, posy, board):
-        print("King implemented")
+    def availableMoves(self, board):
+        moves = []
+        for x,y in kingList(self.posx, self.posy):
+            if self.isValidMove(x, y, board):
+                moves.append((x, y))
+        return moves
     
     def doSomething(self):
         super().doSomething()
         print("Now King is doing something!")
 
+def kingList(x, y):
+    return [(x + 1, y), (x + 1, y - 1), (x, y - 1), (x - 1, y - 1), (x - 1, y), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)]
+
 if __name__ == "__main__":
     newKing = King("lower", 1, 1)
-    # newKing.doSomething()
-    print("Printing King: ")
-    print(newKing)
-    newKing.promote()
-    print(newKing)

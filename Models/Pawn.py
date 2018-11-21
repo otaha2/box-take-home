@@ -9,7 +9,7 @@ class Pawn(Piece.Piece):
         else:
             self.name = "p"
 
-    def availableMoves(self, posx, posy, board):
+    def availableMoves(self, board):
         print("Pawn implemented")
     
     def doSomething(self):

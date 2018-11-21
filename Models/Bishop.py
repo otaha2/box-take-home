@@ -9,7 +9,7 @@ class Bishop(Piece.Piece):
         else:
             self.name = "b"
 
-    def availableMoves(self, posx, posy, board):
+    def availableMoves(self, board):
         print("Bishop implemented")
     
     def doSomething(self):

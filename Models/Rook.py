@@ -9,7 +9,7 @@ class Rook(Piece.Piece):
         else:
             self.name = "r"
 
-    def availableMoves(self, posx, posy, board):
+    def availableMoves(self, board):
         print("Rook implemented")
     
     def doSomething(self):

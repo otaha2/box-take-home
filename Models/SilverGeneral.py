@@ -9,7 +9,7 @@ class SilverGeneral(Piece.Piece):
         else:
             self.name = "s"
 
-    def availableMoves(self, posx, posy, board):
+    def availableMoves(self, board):
         print("SilverGeneral implemented")
     
     def doSomething(self):
