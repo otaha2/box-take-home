@@ -10,7 +10,12 @@ class Pawn(Piece.Piece):
             self.name = "p"
 
     def availableMoves(self, board):
-        print("Pawn implemented")
+        moves = []
+        if self.player == "lower" and self.isValidMove(self.posx, self.posy + 1, board):
+            moves.append((self.posx, self.posy + 1))
+        elif self.player == "UPPER" and self.isValidMove(self.posx, self.posy - 1, board):
+            moves.append((self.posx, self.posy - 1))
+        return moves
     
     def doSomething(self):
         super().doSomething()

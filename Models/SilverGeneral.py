@@ -10,11 +10,21 @@ class SilverGeneral(Piece.Piece):
             self.name = "s"
 
     def availableMoves(self, board):
-        print("SilverGeneral implemented")
+        moves = []
+        for x,y in self.silverGeneralList(self.posx, self.posy):
+            if self.isValidMove(x, y, board):
+                moves.append((x, y))
+        return moves
     
     def doSomething(self):
         super().doSomething()
         print("Now SilverGeneral is doing something!")
+
+    def silverGeneralList(self, x, y):
+        if self.player == "UPPER":
+            return [(x + 1, y - 1), (x, y - 1), (x - 1, y - 1), (x - 1, y + 1), (x + 1, y + 1)]
+        elif self.player == "lower":
+            return [(x + 1, y - 1), (x - 1, y - 1), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)]
 
 if __name__ == "__main__":
     newSilverGeneral = SilverGeneral("lower", 1, 1)
