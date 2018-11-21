@@ -11,6 +11,8 @@ class Game():
     def __init__(self):
         self.playerTurn = "lower"
         self.initBoard()
+        self.lowerPlayerMoveCount = 0
+        self.upperPlayerMoveCount = 0
 
     def initBoard(self):
         #Board is stored in Row-Column Order
