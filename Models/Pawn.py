@@ -22,6 +22,8 @@ class Pawn(Piece.Piece):
         elif self.player == "UPPER" and self.isValidMove(self.posx, self.posy - 1, board):
             moves.append((self.posx, self.posy - 1))
         return moves
+        
+        
     
     def doSomething(self):
         super().doSomething()

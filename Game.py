@@ -15,11 +15,6 @@ class Game():
     interactive_mode = False
     file_mode = False
     fname = ""
-    lowerCapture = []
-    upperCapture = []
-
-    
-
 
     def __init__(self):
 
@@ -70,7 +65,7 @@ class Game():
                 else:
                     self.strBoard[i][j] = ""
         
-    #Used for testing... used provided Utility Method
+    #Used for testing... use provided Utility Method instead of this
     def printBoard(self):
 
         for i in range(5):
@@ -92,46 +87,87 @@ class Game():
                 self.file_mode = True
                 self.fname = sys.argv[2]
 
-    def move(self, curPos, endPos):
+    def printBeginTurn(self):
+        newGame.refreshStrBoard()
+        strB = u.stringifyBoard(newGame.strBoard)
+        print(strB)
 
+        print("Captures UPPER:", end="")
+        for item in self.upperPlayer.captures:
+            print(" " + str(item), end="")
+        
+        print("")
+        print("Captures lower:", end="")
+        for item in self.lowerPlayer.captures:
+            print(" " + str(item), end="")
+
+        print("")
+
+    
+    def parseInput(self, arg1, arg2):
+        
         #Get the indexs on board of current position and end position
-        curX = curPos[0]
+        curX = arg1[0]
         curX = map_from_alpha_to_index[curX]
-        curY = int(curPos[1]) - 1
-        endX = endPos[0]
+        curY = int(arg1[1]) - 1
+        endX = arg2[0]
         endX = map_from_alpha_to_index[endX]
-        endY = int(endPos[1]) - 1
+        endY = int(arg2[1]) - 1
+
+        return [(curX, curY), (endX, endY)]
+
+    def move(self, curPos, endPos):
+        """Move the piece and update the board"""
+
+        positions = self.parseInput(curPos, endPos)
+
+        endX = positions[1][0]
+        endY = positions[1][1]
+        curX = positions[0][0]
+        curY = positions[0][1]
 
         if (endX, endY) not in self.board[curX][curY].availableMoves(self.board):
             print("Illegal Move")
         else:
-            print("Valid Move")
-            if(self.board[endX][endY] == 1) and type(self.board[curX][curY]) != int:
+            #Empty end destination and make sure current is an object to dereference
+            if type(self.board[curX][curY]) != int and self.board[curX][curY].player == self.playerTurn:
+                if (self.board[endX][endY] != 1):
+                    if self.playerTurn == "lower":
+                        self.lowerPlayer.addCapture(self.board[endX][endY])
+                    else:
+                        self.upperPlayer.addCapture(self.board[endX][endY])
                 item = self.board[curX][curY]
                 item.posx = endX
                 item.posy = endY
                 self.board[endX][endY] = item
                 self.board[curX][curY] = 1
-            if(self.board[endX][endY] != 1) and type(self.board[curX][curY]) != int:
-                if self.board[curX][curY].player == "lower":
-                    self.lowerPlayer.addCapture(self.board[endX][endY])
-                else:
-                    self.upperPlayer.addCapture(self.board[endX][endY])
-                item = self.board[curX][curY]
-                item.posx = endX
-                item.posy = endY
-                self.board[endX][endY] = item
-                self.board[curX][curY] = 1
-            elif type(self.board[curX][curY] == int):
-                print("No piece exits here...")
-            
+            #End destination has another piece in that square
+            elif type(self.board[curX][curY]) != int and self.board[curX][curY].player != self.playerTurn:
+                print("Illegal Move... please move your own piece")
+        self.updateTurn()
+    
+    def getInput(self):
+        turnInput = input(self.playerTurn + "> ")
+        inputList = turnInput.split(" ")
+        return inputList
 
+    def updateTurn(self):
+        if self.playerTurn == "lower":
+            self.playerTurn = "UPPER"
 
-                
-                
+        elif self.playerTurn == "UPPER":
+            self.playerTurn = "lower"
 
-        # print("Current Position: " + str((curX, curY)))
-        # print("End Position: " + str((endX, endY)))
+    def gameLoop(self):
+        while 1:
+            #Print the beginning of the turn, wait for user input
+            self.printBeginTurn()
+            inputList = self.getInput()
+
+            if inputList[0] == "move":
+                self.move(inputList[1], inputList[2])
+
+    
             
 
 
@@ -142,9 +178,7 @@ if __name__ == "__main__":
     # newGame.board[1][2] = Pawn.Pawn("lower", 1, 2)
     # newGame.board[2][3] = Bishop.Bishop("UPPER", 2, 3)
 
-    newGame.refreshStrBoard()
-    strB = u.stringifyBoard(newGame.strBoard)
-    print(strB)
+    newGame.gameLoop()
 
     # for col in newGame.board:
     #     for item in col:
@@ -154,28 +188,26 @@ if __name__ == "__main__":
     #             print(item.availableMoves(newGame.board))
     #             print("")
 
-    newGame.move("a2", "a3")
 
-    newGame.refreshStrBoard()
-    strB = u.stringifyBoard(newGame.strBoard)
-    print(strB)
 
-    newGame.move("a5", "a3")
 
-    newGame.refreshStrBoard()
-    strB = u.stringifyBoard(newGame.strBoard)
-    print(strB)
+    # print("UPPER player captures: ")
+    # for item in newGame.upperPlayer.captures:
+    #     print(item)
+    # print("")
 
-    print("UPPER player captures: ")
-    for item in newGame.upperPlayer.captures:
-        print(item)
-    print("")
+    # positions = newGame.parseInput("d5", "c4")
+    # newGame.move(positions[0], positions[1])
+    # newGame.printBeginTurn()
 
-    newGame.board[1][4].promote()
+    # positions = newGame.parseInput("e1", "e4")
+    # newGame.move(positions[0], positions[1])
+    # newGame.printBeginTurn()
 
-    newGame.refreshStrBoard()
-    strB = u.stringifyBoard(newGame.strBoard)
-    print(strB)
+    # positions = newGame.parseInput("a5", "a2")
+    # newGame.move(positions[0], positions[1])
+    # newGame.printBeginTurn()
 
-    print("Available moves for a Promoted Bishop: ")
-    print(newGame.board[1][4].availableMoves(newGame.board))
+    # newGame.board[1][4].promote()
+    # print("Available moves for a Promoted Bishop: ")
+    # print(newGame.board[1][4].availableMoves(newGame.board))

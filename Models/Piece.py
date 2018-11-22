@@ -1,5 +1,8 @@
 from abc import ABC, abstractmethod
 
+BOARDWIDTH = 5
+BOARDHEIGHT = 5
+
 class Piece(ABC):
 
     promoted = False
@@ -47,3 +50,10 @@ class Piece(ABC):
             return True
         else:
             return False
+
+    def checkForPromotion(self):
+        if self.player == "lower" and self.posy == BOARDHEIGHT - 1:
+            self.promote()
+        if self.player == "UPPER" and self.posy == 0:
+            self.promote()
+        return
