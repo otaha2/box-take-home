@@ -222,9 +222,15 @@ class Game():
         kingPos = (king.posx, king.posy)
         alphaKingPos = self.fromIndexToAlpha(kingPos)
 
+        listOfMoves = []
+
         for move in kingMoves:
             alphaMove = self.fromIndexToAlpha(move)
-            print("move " + alphaKingPos + " " + alphaMove)
+            listOfMoves.append("move " + alphaKingPos + " " + alphaMove)
+
+        listOfMoves.sort()
+        for move in listOfMoves:
+            print(move)
 
     def promotePiece(self, endPos):
         """Called when user input promotes piece"""
@@ -277,10 +283,14 @@ class Game():
                 
 
     def gameLoop(self):
+        isInCheck = 0
         while 1:
             #Do check detection
             possibleKingMoves = checkDetection(self.playerTurn, self.board)
             if type(possibleKingMoves) == list:
+                isInCheck = 1
+                print(self.playerTurn + " player is in check!")
+                print("Available moves:")
                 self.printPossibleKingMoves(possibleKingMoves)
 
             #Print the beginning of the turn, wait for user input
