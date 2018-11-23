@@ -4,6 +4,7 @@ import argparse
 import sys
 
 from Models import Pawn, King, GoldGeneral, SilverGeneral, Bishop, Rook, Player
+from Functions import *
 
 #Dictionary to translate from alpha to index and Vice Versa
 map_from_alpha_to_index = {"a" : 0, "b" : 1, "c" : 2, "d" : 3, "e" : 4}
@@ -155,7 +156,7 @@ class Game():
         # print("Is piece in lower captures: " + str(piece. in self.lowerPlayer.captures))
         if self.playerTurn == "lower":
             for item in self.lowerPlayer.captures:
-                if piece.upper() == str(item):
+                if piece.upper() == str(item) and isSquareEmpty(posDrop, self.board):
                     pieceToDrop = item
                     pieceToDrop.name = pieceToDrop.name.lower()
                     pieceToDrop.posx = posDrop[0]
@@ -165,7 +166,7 @@ class Game():
                     self.lowerPlayer.captures.remove(item)
         if self.playerTurn == "UPPER":
             for item in self.upperPlayer.captures:
-                if piece.lower() == str(item):
+                if piece.lower() == str(item) and isSquareEmpty(posDrop, self.board):
                     pieceToDrop = item
                     pieceToDrop.name = pieceToDrop.name.upper()
                     pieceToDrop.posx = posDrop[0]
@@ -174,7 +175,7 @@ class Game():
                     self.board[posDrop[0]][posDrop[1]] = pieceToDrop
                     self.upperPlayer.captures.remove(item)
         else:
-            print("Not in captures list")
+            print("Invalid Drop")
     
     def getInput(self):
         turnInput = input(self.playerTurn + "> ")
