@@ -120,6 +120,18 @@ class Game():
 
         return [(curX, curY), (endX, endY)]
 
+    def fromIndexToAlpha(self, pos):
+        """
+        Helper function to convert from tuple of index position on board,
+        to alpha string representations
+        """
+        posx = pos[0]
+        posy = pos[1]
+        alphaX = map_from_index_to_alpha[posx]
+        alphaY = str(posy + 1)
+
+        return alphaX + alphaY
+
     def move(self, curPos, endPos):
         """Move the piece and update the board"""
 
@@ -132,6 +144,7 @@ class Game():
 
         if (endX, endY) not in self.board[curX][curY].availableMoves(self.board):
             print("Illegal Move")
+            return -1
         else:
             #Empty end destination and make sure current is an object to dereference
             if type(self.board[curX][curY]) != int and self.board[curX][curY].player == self.playerTurn:
@@ -148,6 +161,7 @@ class Game():
             #End destination has another piece in that square
             elif type(self.board[curX][curY]) != int and self.board[curX][curY].player != self.playerTurn:
                 print("Illegal Move... please move your own piece")
+                return -1
         
 
     def drop(self, piece, posDrop):
@@ -157,6 +171,9 @@ class Game():
         if self.playerTurn == "lower":
             for item in self.lowerPlayer.captures:
                 if piece.upper() == str(item) and isSquareEmpty(posDrop, self.board):
+                    if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board):
+                        print("There is already a Pawn in this column")
+                        return -1
                     pieceToDrop = item
                     pieceToDrop.name = pieceToDrop.name.lower()
                     pieceToDrop.posx = posDrop[0]
@@ -164,9 +181,13 @@ class Game():
                     pieceToDrop.player = "lower"
                     self.board[posDrop[0]][posDrop[1]] = pieceToDrop
                     self.lowerPlayer.captures.remove(item)
-        if self.playerTurn == "UPPER":
+
+        elif self.playerTurn == "UPPER":
             for item in self.upperPlayer.captures:
                 if piece.lower() == str(item) and isSquareEmpty(posDrop, self.board):
+                    if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board):
+                        print("There is already a  Pawn in this column")
+                        return -1
                     pieceToDrop = item
                     pieceToDrop.name = pieceToDrop.name.upper()
                     pieceToDrop.posx = posDrop[0]
@@ -176,6 +197,7 @@ class Game():
                     self.upperPlayer.captures.remove(item)
         else:
             print("Invalid Drop")
+            return -1
     
     def getInput(self):
         turnInput = input(self.playerTurn + "> ")
@@ -188,6 +210,21 @@ class Game():
 
         elif self.playerTurn == "UPPER":
             self.playerTurn = "lower"
+
+    def printPrevCommand(self, command):
+        # self.prevCommand = command
+        commandString = " ".join(command)
+        
+        print(self.playerTurn + " player action: " + commandString)
+
+    def printPossibleKingMoves(self, kingMoves):
+        king = findKing(self.playerTurn, self.board)
+        kingPos = (king.posx, king.posy)
+        alphaKingPos = self.fromIndexToAlpha(kingPos)
+
+        for move in kingMoves:
+            alphaMove = self.fromIndexToAlpha(move)
+            print("move " + alphaKingPos + " " + alphaMove)
 
     def promotePiece(self, endPos):
         """Called when user input promotes piece"""
@@ -203,13 +240,18 @@ class Game():
                 piece.promote()
             else:
                 print("Illegal Move... Cannot promote")
+                return -1
     
     def handleTurnCommand(self, command):
 
         if command[0] == "move":
-            self.move(command[1], command[2])
+            returnVal = self.move(command[1], command[2])
+            if returnVal == -1:
+                return -1
             if len(command) > 3 and command[3] == "promote":
-                self.promotePiece(command[2])
+                returnVal = self.promotePiece(command[2])
+                if returnVal == -1:
+                    return -1
         if command[0] == "drop":
             #Get the piece value to drop, and index position from input command
             pieceToDrop = command[1]
@@ -219,17 +261,42 @@ class Game():
             dropLocationX = map_from_alpha_to_index[dropLocationX]
             dropLocationY = int(dropLocation[1]) - 1
 
-            self.drop(pieceToDrop, (dropLocationX, dropLocationY))
+            returnVal = self.drop(pieceToDrop, (dropLocationX, dropLocationY))
+            if returnVal == -1:
+                return -1
+
+    def endGame(self):
+        if self.playerTurn == "lower":
+            self.gameWinner = "UPPER"
+        elif self.playerTurn == "UPPER":
+            self.gameWinner = "lower"
+        
+        print(self.gameWinner + " player wins. " + self.returnMessage)
+
         
                 
 
     def gameLoop(self):
         while 1:
+            #Do check detection
+            possibleKingMoves = checkDetection(self.playerTurn, self.board)
+            if type(possibleKingMoves) == list:
+                self.printPossibleKingMoves(possibleKingMoves)
+
             #Print the beginning of the turn, wait for user input
             self.printBeginTurn()
+            #Get the user command
             commandList = self.getInput()
-
-            self.handleTurnCommand(commandList)
+            #Print the command
+            self.printPrevCommand(commandList)
+            #Do the command (move, drop, etc.)
+            returnVal = self.handleTurnCommand(commandList)
+            #-1 means Illegal move was inputted
+            if returnVal == -1:
+                self.returnMessage = "Illegal move."
+                self.endGame()
+                return
+            #Update whos turn it is before the next turn
             self.updateTurn()
 
             
