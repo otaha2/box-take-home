@@ -12,5 +12,5 @@ class Player():
         if piece.promoted == True:
             piece.promoted = False
             piece.name = piece.name[1]
-            piece.Player = self.name
+            piece.player = self.name
         self.captures.append(piece)

@@ -52,8 +52,11 @@ class Piece(ABC):
             return False
 
     def checkForPromotion(self):
+        if self.promoted == True:
+            return False
         if self.player == "lower" and self.posy == BOARDHEIGHT - 1:
-            self.promote()
+            return True
         if self.player == "UPPER" and self.posy == 0:
-            self.promote()
-        return
+            return True
+        else:
+            return False

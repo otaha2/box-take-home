@@ -105,8 +105,11 @@ class Game():
 
     
     def parseInput(self, arg1, arg2):
-        
-        #Get the indexs on board of current position and end position
+        """
+        Helper function to get the indicies on board of current position and end position
+        Returns a list containing 2 tuples of X and Y position on board of current and end
+        """
+
         curX = arg1[0]
         curX = map_from_alpha_to_index[curX]
         curY = int(arg1[1]) - 1
@@ -144,7 +147,34 @@ class Game():
             #End destination has another piece in that square
             elif type(self.board[curX][curY]) != int and self.board[curX][curY].player != self.playerTurn:
                 print("Illegal Move... please move your own piece")
-        self.updateTurn()
+        
+
+    def drop(self, piece, posDrop):
+        # print("Piece to drop: " + piece)
+        # print("Position to drop: " + str(posDrop))
+        # print("Is piece in lower captures: " + str(piece. in self.lowerPlayer.captures))
+        if self.playerTurn == "lower":
+            for item in self.lowerPlayer.captures:
+                if piece.upper() == str(item):
+                    pieceToDrop = item
+                    pieceToDrop.name = pieceToDrop.name.lower()
+                    pieceToDrop.posx = posDrop[0]
+                    pieceToDrop.posy = posDrop[1]
+                    pieceToDrop.player = "lower"
+                    self.board[posDrop[0]][posDrop[1]] = pieceToDrop
+                    self.lowerPlayer.captures.remove(item)
+        if self.playerTurn == "UPPER":
+            for item in self.upperPlayer.captures:
+                if piece.lower() == str(item):
+                    pieceToDrop = item
+                    pieceToDrop.name = pieceToDrop.name.upper()
+                    pieceToDrop.posx = posDrop[0]
+                    pieceToDrop.posy = posDrop[1]
+                    pieceToDrop.player = "UPPER"
+                    self.board[posDrop[0]][posDrop[1]] = pieceToDrop
+                    self.upperPlayer.captures.remove(item)
+        else:
+            print("Not in captures list")
     
     def getInput(self):
         turnInput = input(self.playerTurn + "> ")
@@ -158,14 +188,52 @@ class Game():
         elif self.playerTurn == "UPPER":
             self.playerTurn = "lower"
 
+    def promotePiece(self, endPos):
+        """Called when user input promotes piece"""
+
+        positions = self.parseInput("a1", endPos)
+        posX = positions[1][0]
+        posY = positions[1][1]
+
+        if type(self.board[posX][posY]) != int:
+            piece = self.board[posX][posY]
+            canPromote = piece.checkForPromotion()
+            if canPromote:
+                piece.promote()
+            else:
+                print("Illegal Move... Cannot promote")
+    
+    def handleTurnCommand(self, command):
+
+        if command[0] == "move":
+            self.move(command[1], command[2])
+            if len(command) > 3 and command[3] == "promote":
+                self.promotePiece(command[2])
+        if command[0] == "drop":
+            #Get the piece value to drop, and index position from input command
+            pieceToDrop = command[1]
+            dropLocation = command[2]
+
+            dropLocationX = dropLocation[0]
+            dropLocationX = map_from_alpha_to_index[dropLocationX]
+            dropLocationY = int(dropLocation[1]) - 1
+
+            self.drop(pieceToDrop, (dropLocationX, dropLocationY))
+        
+                
+
     def gameLoop(self):
         while 1:
             #Print the beginning of the turn, wait for user input
             self.printBeginTurn()
-            inputList = self.getInput()
+            commandList = self.getInput()
 
-            if inputList[0] == "move":
-                self.move(inputList[1], inputList[2])
+            self.handleTurnCommand(commandList)
+            self.updateTurn()
+
+            
+
+
 
     
             
