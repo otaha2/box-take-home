@@ -11,7 +11,9 @@ class Bishop(Piece.Piece):
 
     def availableMoves(self, board):
         moves = []
+        # print("Bishop Position: " + str((self.posx, self.posy)))
         for i in range(1, 5):
+            # print("Position " + str((self.posx - i, self.posy - i)) + " : " + str(self.isValidMove(self.posx - i, self.posy - i, board)))
             if self.isValidMove(self.posx + i, self.posy + i, board) and self.isPathOpen(self.posx + i, self.posy + i, board):
                 moves.append((self.posx + i, self.posy + i))
 
@@ -39,6 +41,7 @@ class Bishop(Piece.Piece):
         if self.posy > y and self.posx > x:
             #Check if path DownLeft is open (from the view of the lower player)
             for i, j in zip(range(self.posx - 1, x, -1), range(self.posy - 1, y, -1)):
+                # print("Position " + str((i, j)) + " : " + str(board[i][j]))
                 if board[i][j] != 1:
                     return False
 

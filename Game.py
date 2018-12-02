@@ -1,14 +1,14 @@
 import Models
-import utils as u
+import utils
 import argparse
 import sys
 
 from Models import Pawn, King, GoldGeneral, SilverGeneral, Bishop, Rook, Player
 from Functions import *
+from printingFunctions import *
+from FileModeFunctions import *
 
-#Dictionary to translate from alpha to index and Vice Versa
-map_from_alpha_to_index = {"a" : 0, "b" : 1, "c" : 2, "d" : 3, "e" : 4}
-map_from_index_to_alpha = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e"}
+
 
 class Game():
 
@@ -20,14 +20,19 @@ class Game():
     def __init__(self):
 
         self.playerTurn = "lower"
-        self.initBoard()
         self.lowerPlayer = Player.Player("lower")
         self.upperPlayer = Player.Player("UPPER")
+        self.moveCount = 0
+        self.playerInCheck= False
+        self.prevMove = ""
+
+        if self.file_mode == False:
+            self.initBoard()
 
     #Set up the object represented board and string board
     def initBoard(self):
 
-        #Board is stored in Row-Column Order
+        #Board is stored in [Column][Row] Order
         self.board = [[1] * 5 for i in range(5)]
         self.strBoard = [[""] * 5 for i in range(5)]
 
@@ -53,6 +58,113 @@ class Game():
             elif pieceOnBoard[i] == "r":
                 self.board[i][0] = Rook.Rook("lower", i, 0)
                 self.board[4-i][4] = Rook.Rook("UPPER", 4-i, 4)
+
+    def completeFromFile(self):
+        f = open(self.fname, "r")
+
+        #Board is stored in [Column][Row] Order
+        self.board = [[1] * 5 for i in range(5)]
+        self.strBoard = [[""] * 5 for i in range(5)]
+        self.playerTurn = "lower"
+
+        piecesDone = False
+        listOneDone = False
+        listTwoDone = False
+        movesGiven = False
+
+        listOfPossibleMoves = []
+
+        for line in f:
+            #New line, go to the next line
+            if line == "\n":
+                continue
+
+            #2nd list was completed, Do all the moves given in the file
+            if listTwoDone:
+                if isInCheck(self.playerTurn, self.board):
+                    # print("In Check")
+                    printIsInCheck(self)
+                    self.playerInCheck = True
+                    possibleMoves = getPossibleMovesOutCheck(self.playerTurn, self.board)
+                    listOfPossibleMoves = ListPossibleCheckMoves(self, possibleMoves)
+                commandList = getMoveCommand(line)
+                # print(commandList)
+                #Do the command (move, drop, etc.)
+                returnVal = self.handleTurnCommand(commandList)
+                #-1 means Illegal move was inputted
+                if returnVal == -1:
+                    self.returnMessage = "Illegal move."
+                    self.endGame()
+                    return
+                self.prevMove = ' '.join(commandList)
+                #Update whos turn it is before the next turn
+                self.updateTurn()
+                
+            #Reached the first list means the initialization of pieces on the board are done
+            #Initialize UPPER pieces captured
+            if not listOneDone and line[0] == "[":
+                piecesDone = True
+                listOneDone = True
+                stringList = line[1:len(line) - 2]
+                stringPiecesCaptured = stringList.split(" ")
+                for item in stringPiecesCaptured:
+                    if item == "P":
+                        self.upperPlayer.addCapture(Pawn.Pawn("UPPER", 1, 1))
+                    elif item == "K":
+                        self.upperPlayer.addCapture(King.King("UPPER", 1, 1))
+                    elif item == "G":
+                        self.upperPlayer.addCapture(GoldGeneral.GoldGeneral("UPPER", 1, 1))
+                    elif item == "S":
+                        self.upperPlayer.addCapture(SilverGeneral.SilverGeneral("UPPER", 1, 1))
+                    elif item == "B":
+                        self.upperPlayer.addCapture(Bishop.Bishop("UPPER", 1, 1))
+                    elif item == "R":
+                        self.upperPlayer.addCapture(Rook.Rook("UPPER", 1, 1))
+
+            #Initialize lower pieces captured
+            elif listOneDone == True and line[0] == "[":
+                listTwoDone = True
+                stringList = line[1:len(line) - 1]
+                stringPiecesCaptured = stringList.split(" ")
+                for item in stringPiecesCaptured:
+                    if item == "p":
+                        self.lowerPlayer.addCapture(Pawn.Pawn("lower", 1, 1))
+                    elif item == "k":
+                        self.lowerPlayer.addCapture(King.King("lower", 1, 1))
+                    elif item == "g":
+                        self.lowerPlayer.addCapture(GoldGeneral.GoldGeneral("lower", 1, 1))
+                    elif item == "s":
+                        self.lowerPlayer.addCapture(SilverGeneral.SilverGeneral("lower", 1, 1))
+                    elif item == "b":
+                        self.lowerPlayer.addCapture(Bishop.Bishop("lower", 1, 1))
+                    elif item == "r":
+                        self.lowerPlayer.addCapture(Rook.Rook("lower", 1, 1))
+
+            #For each piece, initialize the board position with the Piece Object
+            if not piecesDone:
+                if line == "\n":
+                    piecesDone = True
+                    continue
+                addPieceToBoard(line, self.board) 
+
+        if isInCheck(self.playerTurn, self.board):
+            printIsInCheck(self)
+            self.playerInCheck = True
+            possibleMoves = getPossibleMovesOutCheck(self.playerTurn, self.board)
+            listOfPossibleMoves = ListPossibleCheckMoves(self, possibleMoves)
+
+        printBeginTurn(self, listOfPossibleMoves)
+        print(self.playerTurn + "> ")
+
+        # for col in self.board:
+        #     for item in col:
+        #         if type(item) == King.King and item.player == "lower":
+        #             # print("Piece: " + item.name)
+        #             print("Position: " + str((item.posx, item.posy)))
+        #             print("Available Moves:")
+        #             for move in item.availableMoves(self.board):
+        #                 print(move)
+                    
     
     #Refresh the string representation of board from the object representation of board
     def refreshStrBoard(self):
@@ -88,54 +200,20 @@ class Game():
                 self.file_mode = True
                 self.fname = sys.argv[2]
 
-    def printBeginTurn(self):
-        newGame.refreshStrBoard()
-        strB = u.stringifyBoard(newGame.strBoard)
-        print(strB)
-
-        print("Captures UPPER:", end="")
-        for item in self.upperPlayer.captures:
-            print(" " + str(item), end="")
-        
-        print("")
-        print("Captures lower:", end="")
-        for item in self.lowerPlayer.captures:
-            print(" " + str(item), end="")
-
-        print("")
-
-    
     def parseInput(self, arg1, arg2):
         """
         Helper function to get the indicies on board of current position and end position
         Returns a list containing 2 tuples of X and Y position on board of current and end
         """
 
-        curX = arg1[0]
-        curX = map_from_alpha_to_index[curX]
-        curY = int(arg1[1]) - 1
-        endX = arg2[0]
-        endX = map_from_alpha_to_index[endX]
-        endY = int(arg2[1]) - 1
-
-        return [(curX, curY), (endX, endY)]
-
-    def fromIndexToAlpha(self, pos):
-        """
-        Helper function to convert from tuple of index position on board,
-        to alpha string representations
-        """
-        posx = pos[0]
-        posy = pos[1]
-        alphaX = map_from_index_to_alpha[posx]
-        alphaY = str(posy + 1)
-
-        return alphaX + alphaY
+        return (fromAlphaToIndex(arg1), fromAlphaToIndex(arg2))
 
     def move(self, curPos, endPos):
         """Move the piece and update the board"""
 
         positions = self.parseInput(curPos, endPos)
+
+        # print("Parsed Input: " + str(positions))
 
         endX = positions[1][0]
         endY = positions[1][1]
@@ -210,27 +288,29 @@ class Game():
 
         elif self.playerTurn == "UPPER":
             self.playerTurn = "lower"
-
-    def printPrevCommand(self, command):
-        # self.prevCommand = command
-        commandString = " ".join(command)
         
-        print(self.playerTurn + " player action: " + commandString)
+        if self.playerTurn == "lower":
+            self.moveCount += 1
 
-    def printPossibleKingMoves(self, kingMoves):
-        king = findKing(self.playerTurn, self.board)
-        kingPos = (king.posx, king.posy)
-        alphaKingPos = self.fromIndexToAlpha(kingPos)
 
+    def printPossibleCheckMoves(self, possibleMoves):
+
+        print(self.playerTurn + " player is in check!")
+        
         listOfMoves = []
 
-        for move in kingMoves:
-            alphaMove = self.fromIndexToAlpha(move)
-            listOfMoves.append("move " + alphaKingPos + " " + alphaMove)
+        for move in possibleMoves:
+            beginPos = move[0]
+            endPos = move[1]
+            alphaBeginPos = fromIndexToAlpha(beginPos)
+            alphaEndPos = fromIndexToAlpha(endPos)
+            listOfMoves.append("move " + alphaBeginPos + " " + alphaEndPos)
 
         listOfMoves.sort()
-        for move in listOfMoves:
-            print(move)
+        # for move in listOfMoves:
+        #     print(move)
+
+        return listOfMoves
 
     def promotePiece(self, endPos):
         """Called when user input promotes piece"""
@@ -272,33 +352,90 @@ class Game():
                 return -1
 
     def endGame(self):
-        if self.playerTurn == "lower":
-            self.gameWinner = "UPPER"
-        elif self.playerTurn == "UPPER":
-            self.gameWinner = "lower"
-        
-        print(self.gameWinner + " player wins. " + self.returnMessage)
+        """
+        End the game
+        """
+        if self.file_mode == True:
+            printBeginTurn(self, [])
+            print(self.gameWinner + " player wins. " + self.returnMessage)
+            return
 
-        
+        if self.returnMessage == "Tie game. Too many moves.":
+            print(self.returnMessage)
+            return
+        else:    
+            # if self.playerTurn == "lower":
+            #     self.gameWinner = "UPPER"
+            # elif self.playerTurn == "UPPER":
+            #     self.gameWinner = "lower"
+            
+            print(self.gameWinner + " player wins. " + self.returnMessage)
                 
 
     def gameLoop(self):
-        isInCheck = 0
+        playerIsInCheck = 0
+        alphaPossibleMoves = []
         while 1:
             #Do check detection
-            possibleKingMoves = checkDetection(self.playerTurn, self.board)
-            if type(possibleKingMoves) == list:
-                isInCheck = 1
-                print(self.playerTurn + " player is in check!")
-                print("Available moves:")
-                self.printPossibleKingMoves(possibleKingMoves)
+            # possibleKingMoves = checkDetection(self.playerTurn, self.board)
+            # if type(possibleKingMoves) == list:
+            #     isInCheck = 1
+            #     print(self.playerTurn + " player is in check!")
+            #     print("Available moves:")
+            #     self.printPossibleKingMoves(possibleKingMoves)
+
+            #Check if the king exists
+            king = findKing(self.playerTurn, self.board)
+            if type(king) == bool and king == False:
+                self.returnMessage = "Checkmate."
+                if self.playerTurn == "lower":
+                    self.gameWinner = "UPPER"
+                else:
+                    self.gameWinner = "lower"
+                    self.endGame()
+                    return
+
+            if self.playerTurn == "lower" and self.moveCount == 200:
+                self.returnMessage = "Tie game. Too many moves."
+                self.endGame()
+
+            #Check detection at the beginning of every turn
+            if isInCheck(self.playerTurn, self.board):
+                self.playerInCheck = True
+                playerIsInCheck = 1
+                possibleMoves = getPossibleMovesOutCheck(self.playerTurn, self.board)
+                if len(possibleMoves) == 0:
+                    if self.playerTurn == "lower":
+                        self.gameWinner = "UPPER"
+                    else:
+                        self.gameWinner = "lower"
+                    self.returnMessage = "Checkmate."
+                    self.endGame()
+                    return
+                else:
+                    alphaPossibleMoves = ListPossibleCheckMoves(self, possibleMoves)
+            else:
+                #Otherwise not in check, continue on normally
+                alphaPossibleMoves = []
+                self.playerInCheck = False
+                pass
 
             #Print the beginning of the turn, wait for user input
-            self.printBeginTurn()
+            printBeginTurn(self, alphaPossibleMoves)
             #Get the user command
             commandList = self.getInput()
+            #IF the player is in check and they do a move other than the moves given, then they lose (Illegal Move)
+            if playerIsInCheck and " ".join(commandList) not in alphaPossibleMoves:
+                self.returnMessage = "Illegal move."
+                if self.playerTurn == "lower":
+                    self.gameWinner = "UPPER"
+                else:
+                    self.gameWinner = "lower"
+                    self.endGame()
+                    return
+
             #Print the command
-            self.printPrevCommand(commandList)
+            self.prevMove = " ".join(commandList)
             #Do the command (move, drop, etc.)
             returnVal = self.handleTurnCommand(commandList)
             #-1 means Illegal move was inputted
@@ -308,52 +445,12 @@ class Game():
                 return
             #Update whos turn it is before the next turn
             self.updateTurn()
-
-            
-
-
-
-    
-            
+      
 
 
 if __name__ == "__main__":
     newGame = Game()
     newGame.defineCLIOptions()
 
-    # newGame.board[1][2] = Pawn.Pawn("lower", 1, 2)
-    # newGame.board[2][3] = Bishop.Bishop("UPPER", 2, 3)
-
-    newGame.gameLoop()
-
-    # for col in newGame.board:
-    #     for item in col:
-    #         if type(item) == Models.Bishop.Bishop:
-    #             print("My player is: " + item.player)
-    #             print("My current Position is: " + str((item.posx, item.posy)))
-    #             print(item.availableMoves(newGame.board))
-    #             print("")
-
-
-
-
-    # print("UPPER player captures: ")
-    # for item in newGame.upperPlayer.captures:
-    #     print(item)
-    # print("")
-
-    # positions = newGame.parseInput("d5", "c4")
-    # newGame.move(positions[0], positions[1])
-    # newGame.printBeginTurn()
-
-    # positions = newGame.parseInput("e1", "e4")
-    # newGame.move(positions[0], positions[1])
-    # newGame.printBeginTurn()
-
-    # positions = newGame.parseInput("a5", "a2")
-    # newGame.move(positions[0], positions[1])
-    # newGame.printBeginTurn()
-
-    # newGame.board[1][4].promote()
-    # print("Available moves for a Promoted Bishop: ")
-    # print(newGame.board[1][4].availableMoves(newGame.board))
+    # newGame.gameLoop()
+    newGame.completeFromFile()
