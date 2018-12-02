@@ -367,17 +367,36 @@ class Game():
                     if canPromote == False:
                         return -1
 
+            #Check if player enters check with their move
+            item = self.board[positions[0][0]][positions[0][1]]
+
+            #Copy piece Set copied piece position to endPos
+            newPiece = copy.deepcopy(item)
+            newPiece.posx = positions[1][0]
+            newPiece.posy = positions[1][1]
+
+            #Copy board and surface level move the piece to endPos
+            copyBoard = copy.deepcopy(self.board)
+            copyBoard[positions[0][0]][positions[0][1]] = 1
+            copyBoard[positions[1][0]][positions[1][1]] = newPiece
+
+            #If copied board is in check
+            if isInCheck(self.playerTurn, copyBoard):
+                return -1
+
             #Move piece           
             returnVal = self.move(command[1], command[2])
             if returnVal == -1:
                 return -1
+
+            
 
             #If move successful, check for forced pawn
             if returnVal == 0:
                 returnVal = checkForcedPawnPromote(self.board, positions)
                 if returnVal == 1:
                     return
-
+            #Do the promotion
             if len(command) > 3 and command[3] == "promote":
                 returnVal = self.promotePiece(command[1], command[2])
                 if returnVal == -1:
