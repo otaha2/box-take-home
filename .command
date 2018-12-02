@@ -1,0 +1,1 @@
+python miniShogi.py -f 
