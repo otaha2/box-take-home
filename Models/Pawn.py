@@ -1,4 +1,6 @@
 from Models import Piece, GoldGeneral
+from Functions import isInCheck
+import copy
 
 BOARDWIDTH = 5
 BOARDHEIGHT = 5
@@ -25,6 +27,26 @@ class Pawn(Piece.Piece):
         elif self.player == "UPPER" and self.isValidMove(self.posx, self.posy - 1, board):
             moves.append((self.posx, self.posy - 1))
         return moves
+
+    def pawnDropInCheck(self, board):
+        # self.posx = posDrop[0]
+        # self.posy = posDrop[1]
+        # self.player = player
+        copyBoard = copy.deepcopy(board)
+        copyBoard[self.posx][self.posy] = self
+
+        if self.player == "lower":
+            otherPlayer = "UPPER"
+        elif self.player == "UPPER":
+            otherPlayer = "lower"
+
+        if isInCheck(otherPlayer, copyBoard):
+            return True
+
+        if self.player == "lower" and self.posy == BOARDHEIGHT - 1:
+            return True
+        elif self.player == "UPPER" and self.posy == 0:
+            return True
         
         
     

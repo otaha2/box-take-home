@@ -65,8 +65,6 @@ def isInCheck(player, board):
         return True
     kingPos = (king.posx, king.posy)
 
-    # print("King is at: " + str(kingPos))
-
     enemyAvailableEndPos = []
     #Get all available end positions of enemy moves
     for col in board:
@@ -79,7 +77,7 @@ def isInCheck(player, board):
                 # print(enemyPieceMoves)
                 for move in enemyPieceMoves:
                     enemyAvailableEndPos.append(move)
-    # print("")
+                    
     if kingPos in enemyAvailableEndPos:
         return True
     else:

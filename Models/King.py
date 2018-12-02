@@ -20,7 +20,7 @@ class King(Piece.Piece):
         super().doSomething()
         print("Now King is doing something!")
 
-    def checkForPromotion(self):
+    def checkForPromotion(self, prevPos):
         return False
 
 def kingList(x, y):

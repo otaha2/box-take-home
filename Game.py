@@ -219,6 +219,7 @@ class Game():
 
         if (endX, endY) not in self.board[curX][curY].availableMoves(self.board):
             # print("Illegal Move")
+            # print(self.board[curX][curY].availableMoves(self.board))
             return -1
         else:
             #Empty end destination and make sure current is an object to dereference
@@ -235,13 +236,13 @@ class Game():
                 self.board[curX][curY] = 1
 
                 #Forced pawn promotion
-                if type(item) == Pawn.Pawn and item.checkForPromotion():
+                if type(item) == Pawn.Pawn and item.checkForPromotion((curX, curY)) and not item.promoted:
                     item.promote()
             #End destination has another piece in that square
             elif type(self.board[curX][curY]) != int and self.board[curX][curY].player != self.playerTurn:
                 # print("Illegal Move... please move your own piece")
                 return -1
-        
+
 
     def drop(self, piece, posDrop):
         foundPiece = False
@@ -250,8 +251,9 @@ class Game():
                 if piece.lower() == str(item):
                     foundPiece = True
                     if isSquareEmpty(posDrop, self.board):
-                        if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board, self.playerTurn):
-                            return -1
+                        if piece.lower() == "p":
+                            if checkForPawnInColumn(posDrop[0], self.board, self.playerTurn) or Pawn.Pawn(self.playerTurn, posDrop[0], posDrop[1]).pawnDropInCheck(self.board):
+                                return -1
                         pieceToDrop = item
                         pieceToDrop.name = pieceToDrop.name.lower()
                         pieceToDrop.posx = posDrop[0]
@@ -270,9 +272,10 @@ class Game():
                 if piece.upper() == str(item):
                     foundPiece = True
                     if isSquareEmpty(posDrop, self.board):
-                        if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board, self.playerTurn):
+                        if piece.lower() == "p": 
+                            if checkForPawnInColumn(posDrop[0], self.board, self.playerTurn) or Pawn.Pawn(self.playerTurn, posDrop[0], posDrop[1]).pawnDropInCheck(self.board):
                             # print("There is already a  Pawn in this column")
-                            return -1
+                                return -1
                         pieceToDrop = item
                         pieceToDrop.name = pieceToDrop.name.upper()
                         pieceToDrop.posx = posDrop[0]
@@ -309,39 +312,46 @@ class Game():
             self.endGame()
 
 
-    def promotePiece(self, curPos, endPos):
+    def promotePiece(self, prevPos, curPos):
         """Called when user input promotes piece"""
 
-        positions = self.parseInput(curPos, endPos)
-        curX = positions[0][0]
-        curY = positions[0][1]
-        endX = positions[1][0]
-        endY = positions[1][1]
+        positions = self.parseInput(prevPos, curPos)
+        prevX = positions[0][0]
+        prevY = positions[0][1]
+        curX = positions[1][0]
+        curY = positions[1][1]
 
         item = self.board[curX][curY]
 
         if type(item) != int:
+            if item.promoted == True:
+                return 0
             piece = item
             newPiece = copy.deepcopy(piece)
-            newPiece.posx = endX
-            newPiece.posy = endY
-            canPromote = newPiece.checkForPromotion()
+            # newPiece.posx = endX
+            # newPiece.posy = endY
+            canPromote = newPiece.checkForPromotion((prevX, prevY))
             if canPromote:
                 piece.promote()
+                return 0
             else:
                 # print("Illegal Move... Cannot promote")
                 return -1
     
     def handleTurnCommand(self, command):
-
+        """
+        Entry point for command --- Just like a sys call :)
+        """
         if command[0] == "move":
-            if len(command) > 3 and command[3] == "promote":
-                returnVal = self.promotePiece(command[1], command[2])
-                if returnVal == -1:
-                    return -1
             returnVal = self.move(command[1], command[2])
             if returnVal == -1:
                 return -1
+            if len(command) > 3 and command[3] == "promote":
+                returnVal = self.promotePiece(command[1], command[2])
+                if returnVal == -1:
+                    #Invert the move
+                    self.move(command[2], command[1])
+                    return -1
         if command[0] == "drop":
             #Get the piece value to drop, and index position from input command
             pieceToDrop = command[1]

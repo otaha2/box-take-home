@@ -51,12 +51,24 @@ class Piece(ABC):
         else:
             return False
 
-    def checkForPromotion(self):
+    def checkForPromotion(self, prevPos):
+        """
+        Checks if piece can be promoted
+        returns:    True if valid Promotion
+                    False if not valid for promotion
+        """
         if self.promoted == True:
-            return False
-        if self.player == "lower" and self.posy == BOARDHEIGHT - 1:
             return True
-        if self.player == "UPPER" and self.posy == 0:
-            return True
+
+        # prevX = prevPos[0]
+        prevY = prevPos[1]
+
+        #Entering or leaving promotion zone
+        if self.player == "lower": 
+            if self.posy == BOARDHEIGHT - 1 or prevY == BOARDHEIGHT - 1:
+                return True
+        elif self.player == "UPPER":
+            if self.posy == 0 or prevY == 0:
+                return True
         else:
             return False

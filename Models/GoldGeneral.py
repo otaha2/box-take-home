@@ -20,7 +20,7 @@ class GoldGeneral(Piece.Piece):
         super().doSomething()
         print("Now GoldGeneral is doing something!")
 
-    def checkForPromotion(self):
+    def checkForPromotion(self, prevPos):
         return False
 
     def goldGeneralList(self, x, y):
