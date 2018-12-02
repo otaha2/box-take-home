@@ -2,6 +2,7 @@ import Models
 import utils
 import argparse
 import sys
+import copy
 
 from Models import Pawn, King, GoldGeneral, SilverGeneral, Bishop, Rook, Player
 from Functions import *
@@ -25,6 +26,8 @@ class Game():
         self.moveCount = 0
         self.playerInCheck= False
         self.prevMove = ""
+        self.Checkmate = False
+        self.endedGame = False
 
         if self.file_mode == False:
             self.initBoard()
@@ -62,15 +65,16 @@ class Game():
     def completeFromFile(self):
         f = open(self.fname, "r")
 
+        #Initialize board and player turn
         #Board is stored in [Column][Row] Order
         self.board = [[1] * 5 for i in range(5)]
         self.strBoard = [[""] * 5 for i in range(5)]
         self.playerTurn = "lower"
 
+        #Flags for reading file
         piecesDone = False
         listOneDone = False
         listTwoDone = False
-        movesGiven = False
 
         listOfPossibleMoves = []
 
@@ -78,25 +82,44 @@ class Game():
             #New line, go to the next line
             if line == "\n":
                 continue
-
             #2nd list was completed, Do all the moves given in the file
             if listTwoDone:
                 if isInCheck(self.playerTurn, self.board):
-                    # print("In Check")
-                    printIsInCheck(self)
+                    listOfPossibleMoves = printIsInCheck(self)
+                    # Empty list of possible moves... Checkmate
+                    # print("Turn number: " + str(self.moveCount))
+                    # print(not listOfPossibleMoves)
+                    # if not listOfPossibleMoves:
+                    #     self.Checkmate = True
+                    #     self.returnMessage = " Checkmate"
+                    #     if self.playerTurn == "lower":
+                    #         self.gameWinner = "UPPER"
+                    #     else:
+                    #         self.gameWinner = "lower"
+                    # #     # self.updateTurn()                    
+                    #     self.endGame()
+                    #     return
                     self.playerInCheck = True
-                    possibleMoves = getPossibleMovesOutCheck(self.playerTurn, self.board)
-                    listOfPossibleMoves = ListPossibleCheckMoves(self, possibleMoves)
+                #Check moveCount
+                if self.moveCount == 200:
+                    self.returnMessage = "Tie game. Too many moves."
+                    self.endGame()
+                # print("Move Count: " + str(self.moveCount))
+
                 commandList = getMoveCommand(line)
-                # print(commandList)
+                self.prevMove = ' '.join(commandList)
                 #Do the command (move, drop, etc.)
                 returnVal = self.handleTurnCommand(commandList)
                 #-1 means Illegal move was inputted
                 if returnVal == -1:
-                    self.returnMessage = "Illegal move."
+                    self.returnMessage = " Illegal move."
+                    if self.playerTurn == "lower":
+                        self.gameWinner = "UPPER"
+                    else:
+                        self.gameWinner = "lower"
+                    self.updateTurn()                    
                     self.endGame()
                     return
-                self.prevMove = ' '.join(commandList)
                 #Update whos turn it is before the next turn
                 self.updateTurn()
                 
@@ -105,40 +128,12 @@ class Game():
             if not listOneDone and line[0] == "[":
                 piecesDone = True
                 listOneDone = True
-                stringList = line[1:len(line) - 2]
-                stringPiecesCaptured = stringList.split(" ")
-                for item in stringPiecesCaptured:
-                    if item == "P":
-                        self.upperPlayer.addCapture(Pawn.Pawn("UPPER", 1, 1))
-                    elif item == "K":
-                        self.upperPlayer.addCapture(King.King("UPPER", 1, 1))
-                    elif item == "G":
-                        self.upperPlayer.addCapture(GoldGeneral.GoldGeneral("UPPER", 1, 1))
-                    elif item == "S":
-                        self.upperPlayer.addCapture(SilverGeneral.SilverGeneral("UPPER", 1, 1))
-                    elif item == "B":
-                        self.upperPlayer.addCapture(Bishop.Bishop("UPPER", 1, 1))
-                    elif item == "R":
-                        self.upperPlayer.addCapture(Rook.Rook("UPPER", 1, 1))
+                initCaptures(self, line, 0)
 
             #Initialize lower pieces captured
             elif listOneDone == True and line[0] == "[":
                 listTwoDone = True
-                stringList = line[1:len(line) - 1]
-                stringPiecesCaptured = stringList.split(" ")
-                for item in stringPiecesCaptured:
-                    if item == "p":
-                        self.lowerPlayer.addCapture(Pawn.Pawn("lower", 1, 1))
-                    elif item == "k":
-                        self.lowerPlayer.addCapture(King.King("lower", 1, 1))
-                    elif item == "g":
-                        self.lowerPlayer.addCapture(GoldGeneral.GoldGeneral("lower", 1, 1))
-                    elif item == "s":
-                        self.lowerPlayer.addCapture(SilverGeneral.SilverGeneral("lower", 1, 1))
-                    elif item == "b":
-                        self.lowerPlayer.addCapture(Bishop.Bishop("lower", 1, 1))
-                    elif item == "r":
-                        self.lowerPlayer.addCapture(Rook.Rook("lower", 1, 1))
+                initCaptures(self, line, 1)
 
             #For each piece, initialize the board position with the Piece Object
             if not piecesDone:
@@ -148,13 +143,15 @@ class Game():
                 addPieceToBoard(line, self.board) 
 
         if isInCheck(self.playerTurn, self.board):
-            printIsInCheck(self)
+            listOfPossibleMoves = printIsInCheck(self)
             self.playerInCheck = True
-            possibleMoves = getPossibleMovesOutCheck(self.playerTurn, self.board)
-            listOfPossibleMoves = ListPossibleCheckMoves(self, possibleMoves)
+        else:
+            self.playerInCheck = False
 
-        printBeginTurn(self, listOfPossibleMoves)
-        print(self.playerTurn + "> ")
+        if self.endedGame != True:
+            printBeginTurn(self, listOfPossibleMoves)
+            print("")
+            print(self.playerTurn + "> ")
 
         # for col in self.board:
         #     for item in col:
@@ -221,7 +218,7 @@ class Game():
         curY = positions[0][1]
 
         if (endX, endY) not in self.board[curX][curY].availableMoves(self.board):
-            print("Illegal Move")
+            # print("Illegal Move")
             return -1
         else:
             #Empty end destination and make sure current is an object to dereference
@@ -236,45 +233,60 @@ class Game():
                 item.posy = endY
                 self.board[endX][endY] = item
                 self.board[curX][curY] = 1
+
+                #Forced pawn promotion
+                if type(item) == Pawn.Pawn and item.checkForPromotion():
+                    item.promote()
             #End destination has another piece in that square
             elif type(self.board[curX][curY]) != int and self.board[curX][curY].player != self.playerTurn:
-                print("Illegal Move... please move your own piece")
+                # print("Illegal Move... please move your own piece")
                 return -1
         
 
     def drop(self, piece, posDrop):
-        # print("Piece to drop: " + piece)
-        # print("Position to drop: " + str(posDrop))
-        # print("Is piece in lower captures: " + str(piece. in self.lowerPlayer.captures))
+        foundPiece = False
         if self.playerTurn == "lower":
             for item in self.lowerPlayer.captures:
-                if piece.upper() == str(item) and isSquareEmpty(posDrop, self.board):
-                    if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board):
-                        print("There is already a Pawn in this column")
+                if piece.lower() == str(item):
+                    foundPiece = True
+                    if isSquareEmpty(posDrop, self.board):
+                        if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board, self.playerTurn):
+                            return -1
+                        pieceToDrop = item
+                        pieceToDrop.name = pieceToDrop.name.lower()
+                        pieceToDrop.posx = posDrop[0]
+                        pieceToDrop.posy = posDrop[1]
+                        pieceToDrop.player = "lower"
+                        self.board[posDrop[0]][posDrop[1]] = pieceToDrop
+                        self.lowerPlayer.captures.remove(item)
+                    else:
+                        #Square is not empty
                         return -1
-                    pieceToDrop = item
-                    pieceToDrop.name = pieceToDrop.name.lower()
-                    pieceToDrop.posx = posDrop[0]
-                    pieceToDrop.posy = posDrop[1]
-                    pieceToDrop.player = "lower"
-                    self.board[posDrop[0]][posDrop[1]] = pieceToDrop
-                    self.lowerPlayer.captures.remove(item)
+            if foundPiece == False:
+                return -1
 
         elif self.playerTurn == "UPPER":
             for item in self.upperPlayer.captures:
-                if piece.lower() == str(item) and isSquareEmpty(posDrop, self.board):
-                    if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board):
-                        print("There is already a  Pawn in this column")
+                if piece.upper() == str(item):
+                    foundPiece = True
+                    if isSquareEmpty(posDrop, self.board):
+                        if piece.lower() == "p" and checkForPawnInColumn(posDrop[0], self.board, self.playerTurn):
+                            # print("There is already a  Pawn in this column")
+                            return -1
+                        pieceToDrop = item
+                        pieceToDrop.name = pieceToDrop.name.upper()
+                        pieceToDrop.posx = posDrop[0]
+                        pieceToDrop.posy = posDrop[1]
+                        pieceToDrop.player = "UPPER"
+                        self.board[posDrop[0]][posDrop[1]] = pieceToDrop
+                        self.upperPlayer.captures.remove(item)
+                    else:
+                        #Square is not empty
                         return -1
-                    pieceToDrop = item
-                    pieceToDrop.name = pieceToDrop.name.upper()
-                    pieceToDrop.posx = posDrop[0]
-                    pieceToDrop.posy = posDrop[1]
-                    pieceToDrop.player = "UPPER"
-                    self.board[posDrop[0]][posDrop[1]] = pieceToDrop
-                    self.upperPlayer.captures.remove(item)
+            if foundPiece == False: 
+                return -1
         else:
-            print("Invalid Drop")
+            # print("Invalid Drop")
             return -1
     
     def getInput(self):
@@ -291,53 +303,45 @@ class Game():
         
         if self.playerTurn == "lower":
             self.moveCount += 1
-
-
-    def printPossibleCheckMoves(self, possibleMoves):
-
-        print(self.playerTurn + " player is in check!")
         
-        listOfMoves = []
+        if self.moveCount == 200:
+            self.returnMessage = "Tie game.  Too many moves."
+            self.endGame()
 
-        for move in possibleMoves:
-            beginPos = move[0]
-            endPos = move[1]
-            alphaBeginPos = fromIndexToAlpha(beginPos)
-            alphaEndPos = fromIndexToAlpha(endPos)
-            listOfMoves.append("move " + alphaBeginPos + " " + alphaEndPos)
 
-        listOfMoves.sort()
-        # for move in listOfMoves:
-        #     print(move)
-
-        return listOfMoves
-
-    def promotePiece(self, endPos):
+    def promotePiece(self, curPos, endPos):
         """Called when user input promotes piece"""
 
-        positions = self.parseInput("a1", endPos)
-        posX = positions[1][0]
-        posY = positions[1][1]
+        positions = self.parseInput(curPos, endPos)
+        curX = positions[0][0]
+        curY = positions[0][1]
+        endX = positions[1][0]
+        endY = positions[1][1]
 
-        if type(self.board[posX][posY]) != int:
-            piece = self.board[posX][posY]
-            canPromote = piece.checkForPromotion()
+        item = self.board[curX][curY]
+
+        if type(item) != int:
+            piece = item
+            newPiece = copy.deepcopy(piece)
+            newPiece.posx = endX
+            newPiece.posy = endY
+            canPromote = newPiece.checkForPromotion()
             if canPromote:
                 piece.promote()
             else:
-                print("Illegal Move... Cannot promote")
+                # print("Illegal Move... Cannot promote")
                 return -1
     
     def handleTurnCommand(self, command):
 
         if command[0] == "move":
+            if len(command) > 3 and command[3] == "promote":
+                returnVal = self.promotePiece(command[1], command[2])
+                if returnVal == -1:
+                    return -1
             returnVal = self.move(command[1], command[2])
             if returnVal == -1:
                 return -1
-            if len(command) > 3 and command[3] == "promote":
-                returnVal = self.promotePiece(command[2])
-                if returnVal == -1:
-                    return -1
         if command[0] == "drop":
             #Get the piece value to drop, and index position from input command
             pieceToDrop = command[1]
@@ -355,12 +359,18 @@ class Game():
         """
         End the game
         """
+        self.endedGame = True
         if self.file_mode == True:
             printBeginTurn(self, [])
-            print(self.gameWinner + " player wins. " + self.returnMessage)
+            print("")
+
+            if self.returnMessage == "Tie game.  Too many moves.":
+                print(self.returnMessage)
+            else:
+                print(self.gameWinner + " player wins. " + self.returnMessage)
             return
 
-        if self.returnMessage == "Tie game. Too many moves.":
+        if self.returnMessage == "Tie game.  Too many moves.":
             print(self.returnMessage)
             return
         else:    

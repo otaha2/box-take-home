@@ -20,6 +20,9 @@ class GoldGeneral(Piece.Piece):
         super().doSomething()
         print("Now GoldGeneral is doing something!")
 
+    def checkForPromotion(self):
+        return False
+
     def goldGeneralList(self, x, y):
         if self.player == "UPPER":
             return [(x + 1, y), (x, y - 1), (x - 1, y), (x - 1, y -1), (x, y + 1), (x + 1, y -1)]

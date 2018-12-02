@@ -2,6 +2,7 @@ from Functions import *
 import utils
 
 def printBeginTurn(game, listToPrint):
+        
     if game.prevMove != "":
         printPrevCommand(game)
         
@@ -14,9 +15,10 @@ def printBeginTurn(game, listToPrint):
         print(" " + str(item), end="")
     
     print("")
-    print("Captures lower: ", end="")
+    
+    print("Captures lower:", end="")
     for item in game.lowerPlayer.captures:
-        print(str(item) + " ", end="")
+        print(" " + str(item) , end="")
 
     print("")
 
@@ -24,7 +26,6 @@ def printBeginTurn(game, listToPrint):
         print(game.playerTurn + " player is in check!")
         print("Available moves:")
         printList(listToPrint)
-        
 
 
 def ListPossibleCheckMoves(game, possibleMoves):
@@ -50,7 +51,10 @@ def printList(listToPrint):
         print(item)
 
 def printPrevCommand(game):
-        # self.prevCommand = command
-        commandString = game.prevMove
+
+        if game.playerTurn == "lower":
+            prevPlayer = "UPPER"
+        else:
+            prevPlayer = "lower"
         
-        print(game.playerTurn + " player action: " + commandString)
+        print(prevPlayer + " player action: " + game.prevMove)

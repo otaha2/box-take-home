@@ -37,13 +37,14 @@ def isSquareEmpty(position, board):
     else:
         return False
 
-def checkForPawnInColumn(colNum, board):
+def checkForPawnInColumn(colNum, board, player):
     """
     Returns True if there is a Pawn in the column
     Else returns False
     """
     for i in range(5):
-        if type(board[colNum][i]) == Pawn.Pawn:
+        item = board[colNum][i]
+        if type(item) == Pawn.Pawn and item.player == player:
             return True
     return False
 
@@ -60,6 +61,8 @@ def findKing(player, board):
 
 def isInCheck(player, board):
     king = findKing(player, board)
+    if king == False:
+        return True
     kingPos = (king.posx, king.posy)
 
     # print("King is at: " + str(kingPos))

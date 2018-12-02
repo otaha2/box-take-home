@@ -13,4 +13,8 @@ class Player():
             piece.promoted = False
             piece.name = piece.name[1]
             piece.player = self.name
+        if self.name == "lower":
+            piece.name = piece.name.lower()
+        else:
+            piece.name = piece.name.upper()
         self.captures.append(piece)

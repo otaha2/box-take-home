@@ -1,5 +1,8 @@
 from Models import Piece, GoldGeneral
 
+BOARDWIDTH = 5
+BOARDHEIGHT = 5
+
 class Pawn(Piece.Piece):
 
     def __init__(self, player, posx, posy):
