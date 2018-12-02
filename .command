@@ -1,1 +1,1 @@
-python miniShogi.py -f 
+python miniShogi.py -f

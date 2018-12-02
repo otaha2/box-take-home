@@ -506,6 +506,12 @@ class Game():
                 return
             #Update whos turn it is before the next turn
             self.updateTurn()
+
+    def run(self):
+        if self.file_mode == True:
+            self.completeFromFile()
+        elif self.interactive_mode == True:
+            self.gameLoop()
       
 
 
