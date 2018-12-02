@@ -124,7 +124,12 @@ def printIsInCheck(game):
                 -1 if checkmate and game ended
     """
     possibleMoves = getPossibleMovesOutCheck(game.playerTurn, game.board)
-    if not possibleMoves:
+    if game.playerTurn == "lower":
+        possibleDrops = getPossibleDropsOutCheck(game.playerTurn, game.board, game.lowerPlayer.captures)
+    elif game.playerTurn == "UPPER":
+        possibleDrops = getPossibleDropsOutCheck(game.playerTurn, game.board, game.upperPlayer.captures)
+
+    if not possibleMoves and not possibleDrops:
         game.Checkmate = True
         if game.playerTurn == "lower":
             game.gameWinner = "UPPER"
@@ -135,5 +140,9 @@ def printIsInCheck(game):
         return -1
     else:
         alphaPossibleMoves = ListPossibleCheckMoves(game, possibleMoves)
+        alphaPossibleDrops = ListPossibleCheckDrops(game, possibleDrops)
+
+    combinedList = alphaPossibleMoves + alphaPossibleDrops
+    combinedList.sort()
     
-    return alphaPossibleMoves
+    return combinedList

@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from SeperateFunctions import isSquareEmpty
+
 BOARDWIDTH = 5
 BOARDHEIGHT = 5
 
@@ -50,6 +52,17 @@ class Piece(ABC):
             return True
         else:
             return False
+
+    def availableDrops(self, board):
+        listPos = []
+        for i in range(0, 5):
+            for j in range(0, 5):
+                if isSquareEmpty((i,j), board):
+                    listPos.append((i,j))
+
+        return listPos
+            
+
 
     def checkForPromotion(self, prevPos):
         """

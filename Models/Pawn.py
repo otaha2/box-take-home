@@ -1,5 +1,6 @@
 from Models import Piece, GoldGeneral
-from Functions import isInCheck
+from Functions import isInCheck, checkForPawnInColumn
+from SeperateFunctions import isSquareEmpty
 import copy
 
 BOARDWIDTH = 5
@@ -29,9 +30,6 @@ class Pawn(Piece.Piece):
         return moves
 
     def pawnDropInCheck(self, board):
-        # self.posx = posDrop[0]
-        # self.posy = posDrop[1]
-        # self.player = player
         copyBoard = copy.deepcopy(board)
         copyBoard[self.posx][self.posy] = self
 
@@ -47,6 +45,17 @@ class Pawn(Piece.Piece):
             return True
         elif self.player == "UPPER" and self.posy == 0:
             return True
+
+    def availableDrops(self, board):
+        listPos = []
+        for i in range(0, 5):
+            for j in range(0, 5):
+                if isSquareEmpty((i,j), board):
+                    if not checkForPawnInColumn(j, board, self.player):
+                        if not Pawn(self.player, i, j).pawnDropInCheck(board):
+                            listPos.append((i,j))
+
+        return listPos
     
     def doSomething(self):
         super().doSomething()

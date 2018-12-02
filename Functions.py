@@ -28,15 +28,6 @@ def fromAlphaToIndex(pos):
 
     return (posx, posy)
 
-def isSquareEmpty(position, board):
-    posX = position[0]
-    posY = position[1]
-
-    if board[posX][posY] == 1:
-        return True
-    else:
-        return False
-
 def checkForPawnInColumn(colNum, board, player):
     """
     Returns True if there is a Pawn in the column
@@ -131,6 +122,25 @@ def getPossibleMovesOutCheck(player, board):
                         possibleMoves.append(((piecePosX,piecePosY), move))
     # print("")
     return possibleMoves
+
+def getPossibleDropsOutCheck(player, board, playerCaptures):
+    listDropOutCheck = []
+    for piece in playerCaptures:
+        listDropPiece = piece.availableDrops(board)
+        # print("Piece: " + piece.name + "Positions to drop: " + str(listDropPiece))
+        if type(listDropPiece) == list:
+            for item in listDropPiece:
+                copyBoard = copy.deepcopy(board)
+                newPiece = copy.deepcopy(piece)
+                newPiece.posx = item[0]
+                newPiece.posy = item[1]
+                copyBoard[item[0]][item[1]] = newPiece
+                if not isInCheck(player, copyBoard):
+                    listDropOutCheck.append((piece.name, item))
+    
+    return listDropOutCheck
+        
+
 
 def checkDetection(player, board):
     """

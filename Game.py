@@ -8,6 +8,7 @@ from Models import Pawn, King, GoldGeneral, SilverGeneral, Bishop, Rook, Player
 from Functions import *
 from printingFunctions import *
 from FileModeFunctions import *
+from SeperateFunctions import *
 
 
 
