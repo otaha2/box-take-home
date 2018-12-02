@@ -47,8 +47,6 @@ class Pawn(Piece.Piece):
             return True
         elif self.player == "UPPER" and self.posy == 0:
             return True
-        
-        
     
     def doSomething(self):
         super().doSomething()

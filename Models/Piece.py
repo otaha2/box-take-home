@@ -58,7 +58,7 @@ class Piece(ABC):
                     False if not valid for promotion
         """
         if self.promoted == True:
-            return True
+            return False
 
         # prevX = prevPos[0]
         prevY = prevPos[1]

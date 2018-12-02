@@ -48,6 +48,24 @@ def checkForPawnInColumn(colNum, board, player):
             return True
     return False
 
+def checkForcedPawnPromote(board, positions):
+    posX = positions[1][0]
+    posY = positions[1][1]
+
+    prevX = positions[0][0]
+    prevY = positions[0][1]
+
+    item = board[posX][posY]
+
+    #Forced pawn promotion
+    # print("Position of the pawn: " + str((item.posx, item.posy)))
+    if type(item) == Pawn.Pawn and item.checkForPromotion((prevX, prevY)) and not item.promoted:
+        item.promote()
+        return 1
+    
+    else:
+        return 0
+
 def findKing(player, board):
     foundKing = False
     for col in board:
@@ -77,7 +95,7 @@ def isInCheck(player, board):
                 # print(enemyPieceMoves)
                 for move in enemyPieceMoves:
                     enemyAvailableEndPos.append(move)
-                    
+
     if kingPos in enemyAvailableEndPos:
         return True
     else:

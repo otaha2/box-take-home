@@ -7,11 +7,21 @@ def addPieceToBoard(line, board):
     """
     Add a piece defined from file to board
     """
+    
+    startIndex = 0
+    pieceReached = False
+    for i in line:
+        if i != " ":
+            pieceReached = True
+        if i == " " and not pieceReached:
+            startIndex += 1
+    # print(line)
+    # print(line[startIndex + 2:startIndex + 4])
     #Get the index on board of the piece
     if "+" in line:
-        piecePos = fromAlphaToIndex(line[3:5])
+        piecePos = fromAlphaToIndex(line[startIndex + 3:startIndex + 5])
     else:
-        piecePos = fromAlphaToIndex(line[2:4])
+        piecePos = fromAlphaToIndex(line[startIndex + 2:startIndex + 4])
 
     #Initialize piece
     if "p" in line:
@@ -57,6 +67,10 @@ def initCaptures(game, line, player):
     0 for UPPER player Captures
     1 for lower player Captures
     """
+    #This was put in place because promotedPawnIllegalMoves had a space in front of all lines for some reason
+    if line[0] == " ":
+        line = line[1:len(line)]
+
     stringList = line[1:len(line) - 2]
     stringPiecesCaptured = stringList.split(" ")
     #Uppler Player
@@ -106,6 +120,8 @@ def printIsInCheck(game):
     """
     Called only from file mode game
     Handles getting all moves out of check and printing them
+    returns:    list of possible moves
+                -1 if checkmate and game ended
     """
     possibleMoves = getPossibleMovesOutCheck(game.playerTurn, game.board)
     if not possibleMoves:
@@ -116,7 +132,7 @@ def printIsInCheck(game):
             game.gameWinner = "lower"
         game.returnMessage = " Checkmate."
         game.endGame()
-        return
+        return -1
     else:
         alphaPossibleMoves = ListPossibleCheckMoves(game, possibleMoves)
     

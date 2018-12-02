@@ -86,27 +86,15 @@ class Game():
             if listTwoDone:
                 if isInCheck(self.playerTurn, self.board):
                     listOfPossibleMoves = printIsInCheck(self)
-                    # Empty list of possible moves... Checkmate
-                    # print("Turn number: " + str(self.moveCount))
-                    # print(not listOfPossibleMoves)
-                    # if not listOfPossibleMoves:
-                    #     self.Checkmate = True
-                    #     self.returnMessage = " Checkmate"
-                    #     if self.playerTurn == "lower":
-                    #         self.gameWinner = "UPPER"
-                    #     else:
-                    #         self.gameWinner = "lower"
-                    # #     # self.updateTurn()                    
-                    #     self.endGame()
-                    #     return
+                    if listOfPossibleMoves == -1:
+                        return
                     self.playerInCheck = True
-                #Check moveCount
-                if self.moveCount == 200:
-                    self.returnMessage = "Tie game. Too many moves."
-                    self.endGame()
-                # print("Move Count: " + str(self.moveCount))
-
                 commandList = getMoveCommand(line)
+
+                #This was put in place because promotedPawnIllegalMoves had a space in front of all lines for some reason
+                if "" in commandList:
+                    commandList.remove("")
+
                 self.prevMove = ' '.join(commandList)
                 #Do the command (move, drop, etc.)
                 returnVal = self.handleTurnCommand(commandList)
@@ -117,27 +105,32 @@ class Game():
                         self.gameWinner = "UPPER"
                     else:
                         self.gameWinner = "lower"
+                    self.endedGame = True
                     self.updateTurn()                    
                     self.endGame()
                     return
                 #Update whos turn it is before the next turn
-                self.updateTurn()
+                returnVal = self.updateTurn()
+                # print("Move count: " + str(self.moveCount))
+
+                if returnVal == -1:
+                    return
                 
             #Reached the first list means the initialization of pieces on the board are done
             #Initialize UPPER pieces captured
-            if not listOneDone and line[0] == "[":
+            if not listOneDone and "[" in line:
                 piecesDone = True
                 listOneDone = True
                 initCaptures(self, line, 0)
 
             #Initialize lower pieces captured
-            elif listOneDone == True and line[0] == "[":
+            elif listOneDone == True and "[" in line:
                 listTwoDone = True
                 initCaptures(self, line, 1)
 
             #For each piece, initialize the board position with the Piece Object
             if not piecesDone:
-                if line == "\n":
+                if line == "\n" or line == " \n":
                     piecesDone = True
                     continue
                 addPieceToBoard(line, self.board) 
@@ -235,13 +228,16 @@ class Game():
                 self.board[endX][endY] = item
                 self.board[curX][curY] = 1
 
-                #Forced pawn promotion
-                if type(item) == Pawn.Pawn and item.checkForPromotion((curX, curY)) and not item.promoted:
-                    item.promote()
+                # #Forced pawn promotion
+                # if type(item) == Pawn.Pawn and item.checkForPromotion((curX, curY)) and not item.promoted:
+                #     item.promote()
             #End destination has another piece in that square
             elif type(self.board[curX][curY]) != int and self.board[curX][curY].player != self.playerTurn:
                 # print("Illegal Move... please move your own piece")
                 return -1
+        
+        #On success return 0
+        return 0
 
 
     def drop(self, piece, posDrop):
@@ -304,13 +300,21 @@ class Game():
         elif self.playerTurn == "UPPER":
             self.playerTurn = "lower"
         
+        if self.endedGame == True:
+            return
+        
         if self.playerTurn == "lower":
             self.moveCount += 1
+            if self.moveCount == 200:
+                #Check if checkmate occurred on last move
+                returnVal = printIsInCheck(self)
+                if returnVal == -1:
+                    return -1
+                self.returnMessage = "Tie game.  Too many moves."
+                self.endedGame = True
+                self.endGame()
+                return -1
         
-        if self.moveCount == 200:
-            self.returnMessage = "Tie game.  Too many moves."
-            self.endGame()
-
 
     def promotePiece(self, prevPos, curPos):
         """Called when user input promotes piece"""
@@ -323,15 +327,20 @@ class Game():
 
         item = self.board[curX][curY]
 
+        # print("Positions: " + str(positions)) 
+        # print("Entering promote: " + str(item.promoted))
+
         if type(item) != int:
             if item.promoted == True:
-                return 0
+                return -1
             piece = item
             newPiece = copy.deepcopy(piece)
             # newPiece.posx = endX
             # newPiece.posy = endY
             canPromote = newPiece.checkForPromotion((prevX, prevY))
+            
             if canPromote:
+                # print("Entered promote")
                 piece.promote()
                 return 0
             else:
@@ -343,14 +352,37 @@ class Game():
         Entry point for command --- Just like a sys call :)
         """
         if command[0] == "move":
+            positions = self.parseInput(command[1], command[2])
+
+            #Check if piece can be promoted before moving
+            #If user says promote, but piece cannot be promoted it is illegal move
+            if len(command) > 3 and command[3] == "promote":
+                item = self.board[positions[0][0]][positions[0][1]]
+                if type(item) != int:
+                    newPiece = copy.deepcopy(item)
+                    #Move the copied piece to end position
+                    newPiece.posx = positions[1][0]
+                    newPiece.posy = positions[1][1]
+                    canPromote = newPiece.checkForPromotion(positions[0])
+                    if canPromote == False:
+                        return -1
+
+            #Move piece           
             returnVal = self.move(command[1], command[2])
             if returnVal == -1:
                 return -1
+
+            #If move successful, check for forced pawn
+            if returnVal == 0:
+                returnVal = checkForcedPawnPromote(self.board, positions)
+                if returnVal == 1:
+                    return
+
             if len(command) > 3 and command[3] == "promote":
                 returnVal = self.promotePiece(command[1], command[2])
                 if returnVal == -1:
                     #Invert the move
-                    self.move(command[2], command[1])
+                    # self.move(command[2], command[1])
                     return -1
         if command[0] == "drop":
             #Get the piece value to drop, and index position from input command
@@ -374,21 +406,10 @@ class Game():
             printBeginTurn(self, [])
             print("")
 
-            if self.returnMessage == "Tie game.  Too many moves.":
-                print(self.returnMessage)
-            else:
-                print(self.gameWinner + " player wins. " + self.returnMessage)
-            return
-
         if self.returnMessage == "Tie game.  Too many moves.":
             print(self.returnMessage)
             return
         else:    
-            # if self.playerTurn == "lower":
-            #     self.gameWinner = "UPPER"
-            # elif self.playerTurn == "UPPER":
-            #     self.gameWinner = "lower"
-            
             print(self.gameWinner + " player wins. " + self.returnMessage)
                 
 
