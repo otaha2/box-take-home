@@ -9,6 +9,11 @@ class Player():
         self.numMoves = 0
     
     def addCapture(self, piece):
+        """
+            Add a piece to the list of captured pieces
+        """
+
+        #All captured pieces will start off unpromoted
         if piece.promoted == True:
             piece.promoted = False
             piece.name = piece.name[1]

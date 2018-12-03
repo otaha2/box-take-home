@@ -10,10 +10,14 @@ class SilverGeneral(Piece.Piece):
             self.name = "s"
 
     def availableMoves(self, board):
+        """
+            SilverGeneral Implementation of availableMoves
+            returns:    list of possible endPositions the SilverGeneral can go to
+        """
 
         moves = []
 
-        #If promoted, moves like a Gold General
+        #If promoted, SilverGeneral can only move like a Gold General
         if self.promoted == True:
             moves = GoldGeneral.GoldGeneral(self.player, self.posx, self.posy).availableMoves(board)
             return moves
@@ -22,20 +26,15 @@ class SilverGeneral(Piece.Piece):
             if self.isValidMove(x, y, board):
                 moves.append((x, y))
         
-        
-
         return moves
-    
-    def doSomething(self):
-        super().doSomething()
-        print("Now SilverGeneral is doing something!")
 
     def silverGeneralList(self, x, y):
+        """
+            Called in availableMoves
+            Defines the move patterns for a SilverGeneral
+            returns:    a list of possible endPos relative to current pos of the SilverGeneral
+        """
         if self.player == "UPPER":
             return [(x + 1, y - 1), (x, y - 1), (x - 1, y - 1), (x - 1, y + 1), (x + 1, y + 1)]
         elif self.player == "lower":
             return [(x + 1, y - 1), (x - 1, y - 1), (x - 1, y + 1), (x, y + 1), (x + 1, y + 1)]
-
-if __name__ == "__main__":
-    newSilverGeneral = SilverGeneral("lower", 1, 1)
-    newSilverGeneral.doSomething()

@@ -10,6 +10,10 @@ class Bishop(Piece.Piece):
             self.name = "b"
 
     def availableMoves(self, board):
+        """
+            Bishop Implementation of availableMoves
+            returns:    list of possible endPositions the Bishop can go to
+        """
         moves = []
         # print("Bishop Position: " + str((self.posx, self.posy)))
         for i in range(1, 5):
@@ -38,6 +42,11 @@ class Bishop(Piece.Piece):
         return moves
 
     def isPathOpen(self, x, y, board):
+        """
+            Check if path to end Pos is clear of any other pieces
+            returns:    True if path is clear
+                        False if path is not clear
+        """
         if self.posy > y and self.posx > x:
             #Check if path DownLeft is open (from the view of the lower player)
             for i, j in zip(range(self.posx - 1, x, -1), range(self.posy - 1, y, -1)):
@@ -63,11 +72,4 @@ class Bishop(Piece.Piece):
                 if board[i][j] != 1:
                     return False
         return True
-    
-    def doSomething(self):
-        super().doSomething()
-        print("Now Bishop is doing something!")
-
-if __name__ == "__main__":
-    newBishop = Bishop("lower", 1, 1)
-    newBishop.doSomething()
+  

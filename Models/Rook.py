@@ -10,6 +10,10 @@ class Rook(Piece.Piece):
             self.name = "r"
 
     def availableMoves(self, board):
+        """
+            Rook Implementation of availableMoves
+            returns:    list of possible endPositions the Rook can go to
+        """
         moves = []
         for i in range(1, 5):
             if self.isValidMove(self.posx + i, self.posy, board) and self.isPathOpen(self.posx + i, self.posy, board):
@@ -36,6 +40,11 @@ class Rook(Piece.Piece):
         return moves
 
     def isPathOpen(self, x, y, board):
+        """
+            Check if path to end Pos is clear of any other pieces
+            returns:    True if path is clear
+                        False if path is not clear
+        """
         if self.posy > y and self.posx == x:
             #Check if path Down is open (from the view of the lower player)
             for i in range(y + 1, self.posy):
@@ -61,10 +70,3 @@ class Rook(Piece.Piece):
                     return False
         return True
             
-    def doSomething(self):
-        super().doSomething()
-        print("Now Rook is doing something!")
-
-if __name__ == "__main__":
-    newRook = Rook("lower", 1, 1)
-    newRook.doSomething()

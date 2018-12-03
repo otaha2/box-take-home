@@ -8,6 +8,7 @@ def addPieceToBoard(line, board):
     Add a piece defined from file to board
     """
     
+    #This check was made becuase promotedPawnIllegalMoves had a space in front of all lines for some reason
     startIndex = 0
     pieceReached = False
     for i in line:
@@ -15,15 +16,14 @@ def addPieceToBoard(line, board):
             pieceReached = True
         if i == " " and not pieceReached:
             startIndex += 1
-    # print(line)
-    # print(line[startIndex + 2:startIndex + 4])
+
     #Get the index on board of the piece
     if "+" in line:
         piecePos = fromAlphaToIndex(line[startIndex + 3:startIndex + 5])
     else:
         piecePos = fromAlphaToIndex(line[startIndex + 2:startIndex + 4])
 
-    #Initialize piece
+    #Initialize piece based on line
     if "p" in line:
         piece = Pawn.Pawn("lower", piecePos[0], piecePos[1])
     elif "P" in line:
@@ -58,24 +58,27 @@ def addPieceToBoard(line, board):
     if "+" in line:
         piece.promote()
 
-    #Set the board square to contain piece
+    #update board with the newly initialized piece
     board[piecePos[0]][piecePos[1]] = piece
 
 def initCaptures(game, line, player):
     """
     Initialize Player Captures from File
-    0 for UPPER player Captures
-    1 for lower player Captures
+    player input is:    0 for UPPER player Captures
+                        1 for lower player Captures
     """
     #This was put in place because promotedPawnIllegalMoves had a space in front of all lines for some reason
     if line[0] == " ":
         line = line[1:len(line)]
 
+    #get a list of pieces to add to captures
     stringList = line[1:len(line) - 2]
     stringPiecesCaptured = stringList.split(" ")
-    #Uppler Player
+
+    #Upper Player
     if player == 0:
         for item in stringPiecesCaptured:
+            #Piece position does not matter for now becuase that will get updated when the piece is dropped
             if item == "P":
                 game.upperPlayer.addCapture(Pawn.Pawn("UPPER", 1, 1))
             elif item == "K":
@@ -88,8 +91,10 @@ def initCaptures(game, line, player):
                 game.upperPlayer.addCapture(Bishop.Bishop("UPPER", 1, 1))
             elif item == "R":
                 game.upperPlayer.addCapture(Rook.Rook("UPPER", 1, 1))
+    #Lower player
     elif player == 1:
         for item in stringPiecesCaptured:
+            #Piece position does not matter for now becuase that will get updated when the piece is dropped
             if item == "p":
                 game.lowerPlayer.addCapture(Pawn.Pawn("lower", 1, 1))
             elif item == "k":
@@ -107,13 +112,17 @@ def getMoveCommand(line):
     """
     get the move defined in text file
     returns: move in space seperated list
+
+    Example:    line = "move a1 a2"
+                commandList = ["move", "a1", "a2"]
     """
     commandList = line.split(" ")
+    #Get rid of the newline in the last element of the list
     if "\n" in line:
         lastElement = commandList[len(commandList) - 1]
         lastElement = lastElement[:len(lastElement) - 1]
         commandList[len(commandList) - 1] = lastElement
-
+    
     return commandList
 
 def printIsInCheck(game):
@@ -123,12 +132,17 @@ def printIsInCheck(game):
     returns:    list of possible moves
                 -1 if checkmate and game ended
     """
+
+    #Get possible MOVES to get out of check
     possibleMoves = getPossibleMovesOutCheck(game.playerTurn, game.board)
+
+    #Get possible DROPS to get out of check
     if game.playerTurn == "lower":
         possibleDrops = getPossibleDropsOutCheck(game.playerTurn, game.board, game.lowerPlayer.captures)
     elif game.playerTurn == "UPPER":
         possibleDrops = getPossibleDropsOutCheck(game.playerTurn, game.board, game.upperPlayer.captures)
 
+    #Exists no moves or drops to get out of check ---> Checkmate
     if not possibleMoves and not possibleDrops:
         game.Checkmate = True
         if game.playerTurn == "lower":
@@ -138,10 +152,12 @@ def printIsInCheck(game):
         game.returnMessage = " Checkmate."
         game.endGame()
         return -1
+    #Otherwise get the string representation of the moves and drops
     else:
         alphaPossibleMoves = ListPossibleCheckMoves(game, possibleMoves)
         alphaPossibleDrops = ListPossibleCheckDrops(game, possibleDrops)
 
+    #Combine moves and drops
     combinedList = alphaPossibleMoves + alphaPossibleDrops
     combinedList.sort()
     

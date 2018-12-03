@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from SeperateFunctions import isSquareEmpty
+from isSquareEmpty import isSquareEmpty
 
 BOARDWIDTH = 5
 BOARDHEIGHT = 5
@@ -16,6 +16,9 @@ class Piece(ABC):
         self.posy = posy
     
     def promote(self):
+        """
+            Promote the piece
+        """
         self.promoted = True
         self.name = "+" + self.name
     
@@ -29,31 +32,46 @@ class Piece(ABC):
     def availableMoves(self, board):
         return "No Available Moves for a Piece"
 
-    @abstractmethod
-    def doSomething(self):
-        print("Piece is doing something!")
-
     def inBounds(self, x, y):
+        """
+            checks whether position is in bound
+            return: True for yes
+                    False for no ... Yes I know, pretty intuitive :)
+        """
         if x >= 0 and x < 5 and y >= 0 and y < 5:
             return True
         else:
             return False
     
     def isSquareValid(self, x, y, board):
+        """
+            Check if square on board is valid
+        """
+        #Empty square ... is valid
         if board[x][y] == 1:
             return True
+        #If piece in square belongs to other player ... also valid
         elif type(board[x][y]) != str and board[x][y].player != self.player:
             return True
         else:
             return False
 
     def isValidMove(self, x, y, board):
+        """
+            Checks for validity of the move
+        """
+        #Move is valid if move is in bound, and square is valid to move to
         if self.inBounds(x, y) and self.isSquareValid(x, y, board):
             return True
         else:
             return False
 
     def availableDrops(self, board):
+        """
+            Positions piece can be dropped
+            returns:    list of possible drop locations
+            **Overriden by Pawn**
+        """
         listPos = []
         for i in range(0, 5):
             for j in range(0, 5):

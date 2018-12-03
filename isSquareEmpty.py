@@ -1,4 +1,3 @@
-
 def isSquareEmpty(position, board):
     posX = position[0]
     posY = position[1]
