@@ -13,7 +13,7 @@ from isSquareEmpty import isSquareEmpty
 
 class Game():
     """
-        Game object is the object that runs the entire miniShogi game. It contains all game information, game flow, game rules, etc.
+        Game object is the object that runs the entire miniShogi game. It contains all game information, game flow, game rules, etc
     """
 
     #Command Line Options
