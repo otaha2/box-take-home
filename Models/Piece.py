@@ -6,6 +6,9 @@ BOARDWIDTH = 5
 BOARDHEIGHT = 5
 
 class Piece(ABC):
+    """
+        Parent class of all other pieces (Pawn, King, Rook, etc)
+    """
 
     promoted = False
     name = ""

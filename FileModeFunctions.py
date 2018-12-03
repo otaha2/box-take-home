@@ -3,81 +3,69 @@ from Models import Pawn, King, GoldGeneral, SilverGeneral, Bishop, Rook
 from Functions import *
 from printingFunctions import *
 
-def addPieceToBoard(line, board):
+def addPieceToBoard(alphaPiece, alphaPosition, board):
     """
     Add a piece defined from file to board
+    Inputs:     alphaPiece      -- string representation of piece ex: "p" for lower player Pawn
+                alphaPosition   -- string representation of board position ex: "a1" which is (0,0) on board
+                board           -- board to add piece to
     """
     
-    #This check was made becuase promotedPawnIllegalMoves had a space in front of all lines for some reason
-    startIndex = 0
-    pieceReached = False
-    for i in line:
-        if i != " ":
-            pieceReached = True
-        if i == " " and not pieceReached:
-            startIndex += 1
-
     #Get the index on board of the piece
-    if "+" in line:
-        piecePos = fromAlphaToIndex(line[startIndex + 3:startIndex + 5])
-    else:
-        piecePos = fromAlphaToIndex(line[startIndex + 2:startIndex + 4])
+    piecePos = fromAlphaToIndex(alphaPosition)
 
     #Initialize piece based on line
-    if "p" in line:
+    if "p" in alphaPiece:
         piece = Pawn.Pawn("lower", piecePos[0], piecePos[1])
-    elif "P" in line:
+    elif "P" in alphaPiece:
         piece = Pawn.Pawn("UPPER", piecePos[0], piecePos[1])
             
-    elif "k" in line:
+    elif "k" in alphaPiece:
         piece = King.King("lower", piecePos[0], piecePos[1])
-    elif "K" in line:
+    elif "K" in alphaPiece:
         piece = King.King("UPPER", piecePos[0], piecePos[1])
             
-    elif "g" in line:
+    elif "g" in alphaPiece:
         piece = GoldGeneral.GoldGeneral("lower", piecePos[0], piecePos[1])
-    elif "G" in line:
+    elif "G" in alphaPiece:
         piece = GoldGeneral.GoldGeneral("UPPER", piecePos[0], piecePos[1])
             
-    elif "s" in line:
+    elif "s" in alphaPiece:
         piece = SilverGeneral.SilverGeneral("lower", piecePos[0], piecePos[1])
-    elif "S" in line:
+    elif "S" in alphaPiece:
         piece = SilverGeneral.SilverGeneral("UPPER", piecePos[0], piecePos[1])
             
-    elif "r" in line:
+    elif "r" in alphaPiece:
         piece = Rook.Rook("lower", piecePos[0], piecePos[1])
-    elif "R" in line:
+    elif "R" in alphaPiece:
         piece = Rook.Rook("UPPER", piecePos[0], piecePos[1])
 
-    elif "B" in line:
+    elif "B" in alphaPiece:
         piece = Bishop.Bishop("UPPER", piecePos[0], piecePos[1])
-    elif "b" in line:
+    elif "b" in alphaPiece:
         piece = Bishop.Bishop("lower", piecePos[0], piecePos[1])
         
     #Promoted piece, so promote the piece
-    if "+" in line:
+    if "+" in alphaPiece:
         piece.promote()
 
     #update board with the newly initialized piece
     board[piecePos[0]][piecePos[1]] = piece
+    return
 
-def initCaptures(game, line, player):
+
+def initCaptures(game, capturesList, player):
     """
     Initialize Player Captures from File
-    player input is:    0 for UPPER player Captures
-                        1 for lower player Captures
+    Input:          player          ---  0 for UPPER player Captures, 1 for lower player Captures
+                    capturesList    --- list of captured pieces
+                    game            --- game object
+    
     """
-    #This was put in place because promotedPawnIllegalMoves had a space in front of all lines for some reason
-    if line[0] == " ":
-        line = line[1:len(line)]
-
-    #get a list of pieces to add to captures
-    stringList = line[1:len(line) - 2]
-    stringPiecesCaptured = stringList.split(" ")
 
     #Upper Player
     if player == 0:
-        for item in stringPiecesCaptured:
+        for item in capturesList:
             #Piece position does not matter for now becuase that will get updated when the piece is dropped
             if item == "P":
                 game.upperPlayer.addCapture(Pawn.Pawn("UPPER", 1, 1))
@@ -93,7 +81,7 @@ def initCaptures(game, line, player):
                 game.upperPlayer.addCapture(Rook.Rook("UPPER", 1, 1))
     #Lower player
     elif player == 1:
-        for item in stringPiecesCaptured:
+        for item in capturesList:
             #Piece position does not matter for now becuase that will get updated when the piece is dropped
             if item == "p":
                 game.lowerPlayer.addCapture(Pawn.Pawn("lower", 1, 1))
@@ -107,6 +95,8 @@ def initCaptures(game, line, player):
                 game.lowerPlayer.addCapture(Bishop.Bishop("lower", 1, 1))
             elif item == "r":
                 game.lowerPlayer.addCapture(Rook.Rook("lower", 1, 1))
+    
+    return
 
 def getMoveCommand(line):
     """

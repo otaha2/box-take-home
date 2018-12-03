@@ -1,12 +1,13 @@
-#Is this needed?
 
 class Player():
 
     def __init__(self, name):
+        """
+            Player object has a name, and keeps track of its captured pieces
+        """
 
         self.name = name
         self.captures = []
-        self.numMoves = 0
     
     def addCapture(self, piece):
         """
@@ -22,4 +23,7 @@ class Player():
             piece.name = piece.name.lower()
         else:
             piece.name = piece.name.upper()
+
         self.captures.append(piece)
+    
+        return

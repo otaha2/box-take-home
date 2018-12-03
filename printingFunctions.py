@@ -7,26 +7,31 @@ def printBeginTurn(game, listToPrint):
         Prints the board, Captured pieces, and available moves if the player is in check
         Returns: Nothing
     """
-        
+    #Empty last move (beginning of the game)
     if game.prevMove != "":
         printPrevCommand(game)
         
+    #Uodate string representation of the board
     game.refreshStrBoard()
+    #Call utility function
     strB = utils.stringifyBoard(game.strBoard)
     print(strB)
 
+    #Print upper capture pieces
     print("Captures UPPER:", end="")
     for item in game.upperPlayer.captures:
         print(" " + str(item), end="")
     
     print("")
     
+    #Print lower capture pieces
     print("Captures lower:", end="")
     for item in game.lowerPlayer.captures:
         print(" " + str(item) , end="")
 
     print("")
 
+    #If player is in check, show available moves to get out of it
     if game.playerInCheck == True:
         print("")
         print(game.playerTurn + " player is in check!")
@@ -34,6 +39,8 @@ def printBeginTurn(game, listToPrint):
         printList(listToPrint)
     else:
         print("")
+
+    return
 
 
 def ListPossibleCheckMoves(game, possibleMoves):
@@ -79,9 +86,10 @@ def printList(listToPrint):
     """
         Helper function to print a list with each item in list on a line
     """
-
     for item in listToPrint:
         print(item)
+    
+    return
 
 def printPrevCommand(game):
     """
@@ -95,3 +103,5 @@ def printPrevCommand(game):
         prevPlayer = "lower"
     
     print(prevPlayer + " player action: " + game.prevMove)
+
+    return
